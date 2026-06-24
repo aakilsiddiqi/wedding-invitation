@@ -123,15 +123,7 @@ export default function ScratchCard({ data, onReveal }: ScratchCardProps) {
     };
   }, []);
 
-  // Check if dates were already revealed in localStorage (past state restoration)
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      const stored = localStorage.getItem("luxury_wedding_dates_revealed");
-      if (stored === "true") {
-        setIsScratchedFully(true);
-      }
-    }
-  }, []);
+
 
   const getCoordinates = (e: any) => {
     const canvas = canvasRef.current;

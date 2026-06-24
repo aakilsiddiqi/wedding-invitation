@@ -12,6 +12,7 @@ interface EnvelopeProps {
 export default function Envelope({ onOpen, guestName }: EnvelopeProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [isOpenedFully, setIsOpenedFully] = useState(false);
+  const [bringCardToFront, setBringCardToFront] = useState(false);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
   // Background particle context & rose petal rainfall setup
@@ -155,6 +156,11 @@ export default function Envelope({ onOpen, guestName }: EnvelopeProps) {
     // Play sound, start rose rain, transition out
     window.dispatchEvent(new Event("start-rose-rain"));
     
+    // Bring the card to the front only after the top flap has finished opening (800ms)
+    setTimeout(() => {
+      setBringCardToFront(true);
+    }, 800);
+
     // Stage 1: Seal fades/scale-down, flap opens (takes ~1.2s total)
     // Stage 2: Card slides out (takes ~1s)
     // Stage 3: Envelope fades out completely and unlocks invitation
@@ -162,7 +168,7 @@ export default function Envelope({ onOpen, guestName }: EnvelopeProps) {
       setIsOpenedFully(true);
       setTimeout(() => {
         onOpen();
-      }, 1500);
+      }, 800);
     }, 1800);
   };
 
@@ -236,9 +242,15 @@ export default function Envelope({ onOpen, guestName }: EnvelopeProps) {
               {/* The Letter Card inside */}
               <motion.div
                 className="absolute inset-x-4 top-2 bottom-2 bg-cream rounded-md p-4 text-navy flex flex-col justify-center items-center shadow-lg border border-gold/30"
-                initial={{ y: 0, opacity: 0.8 }}
-                animate={isOpen ? { y: -160, opacity: 1, scale: 1.02 } : { y: 0 }}
-                transition={{ delay: 0.8, duration: 1.2, ease: "easeOut" }}
+                style={{ zIndex: bringCardToFront ? 20 : 0 }}
+                initial={{ y: 0, opacity: 0.8, scale: 0.95, z: 0 }}
+                animate={isOpen ? { y: -180, opacity: 1, scale: 1.08, z: 50 } : { y: 0, opacity: 0.8, scale: 0.95, z: 0 }}
+                transition={{
+                  y: { delay: 0.8, duration: 1.2, ease: "easeOut" },
+                  opacity: { delay: 0.8, duration: 1.2, ease: "easeOut" },
+                  scale: { delay: 0.8, duration: 1.2, ease: "easeOut" },
+                  z: { delay: 0.8, duration: 1.2, ease: "easeOut" }
+                }}
               >
                 <div className="border border-gold/20 w-full h-full rounded p-3 flex flex-col justify-between items-center text-center">
                   <span className="text-[10px] tracking-[0.3em] uppercase text-gold">Wedding Invitation</span>
@@ -291,6 +303,67 @@ export default function Envelope({ onOpen, guestName }: EnvelopeProps) {
                 transition={{ duration: 0.8, ease: "easeInOut" }}
               />
 
+              {/* Top Seal Wrapper (Rotates with the top flap to avoid triangle clipping) */}
+              <motion.div
+                className="absolute left-0 right-0 top-0 h-1/2 pointer-events-none z-30"
+                style={{
+                  originY: 0,
+                  perspective: "1000px",
+                }}
+                animate={isOpen ? { rotateX: -180, zIndex: 5 } : { rotateX: 0, zIndex: 35 }}
+                transition={{ duration: 0.8, ease: "easeInOut" }}
+              >
+                {isOpen && (
+                  <div 
+                    className="absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-1/2 w-16 h-16 sm:w-20 sm:h-20"
+                    style={{ clipPath: "inset(0% 0% 50% 0%)" }}
+                  >
+                    <svg className="w-full h-full drop-shadow-lg text-gold-gradient fill-current" viewBox="0 0 100 100">
+                      <defs>
+                        <radialGradient id="wax-grad-top" cx="50%" cy="50%" r="50%">
+                          <stop offset="0%" stopColor="#FFF8E7" />
+                          <stop offset="35%" stopColor="#D4AF37" />
+                          <stop offset="70%" stopColor="#AA7C11" />
+                          <stop offset="100%" stopColor="#553D00" />
+                        </radialGradient>
+                      </defs>
+                      <circle cx="50" cy="50" r="44" fill="url(#wax-grad-top)" opacity="0.9" />
+                      <path d="M 45 8 C 55 9, 65 5, 75 12 C 85 20, 95 35, 92 48 C 89 61, 94 75, 83 85 C 72 95, 55 91, 45 92 C 35 93, 20 95, 12 84 C 4 73, 9 55, 7 45 C 5 35, 3 20, 14 12 C 25 4, 35 7, 45 8 Z" fill="url(#wax-grad-top)" />
+                      <circle cx="50" cy="50" r="30" fill="none" stroke="#AA7C11" strokeWidth="1.5" strokeDasharray="3,3" />
+                      <circle cx="50" cy="50" r="26" fill="none" stroke="#F3E5AB" strokeWidth="1" />
+                      <path d="M 50 32 C 45 32, 42 38, 42 42 C 42 48, 58 45, 58 52 C 58 58, 50 64, 44 64 M 40 50 L 60 50 M 50 40 A 10 10 0 0 1 50 60" fill="none" stroke="#FFF8E7" strokeWidth="2.5" strokeLinecap="round" />
+                    </svg>
+                  </div>
+                )}
+              </motion.div>
+
+              {/* Bottom Half of Wax Seal (Slides down and fades out) */}
+              {isOpen && (
+                <motion.div
+                  className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-20 w-16 h-16 sm:w-20 sm:h-20 pointer-events-none"
+                  style={{ clipPath: "inset(50% 0% 0% 0%)" }}
+                  initial={{ y: 0, opacity: 1, scale: 1, rotate: 0 }}
+                  animate={{ y: 30, opacity: 0, scale: 0.9, rotate: 5 }}
+                  transition={{ duration: 0.8, ease: "easeOut" }}
+                >
+                  <svg className="w-full h-full drop-shadow-lg text-gold-gradient fill-current" viewBox="0 0 100 100">
+                    <defs>
+                      <radialGradient id="wax-grad-bottom" cx="50%" cy="50%" r="50%">
+                        <stop offset="0%" stopColor="#FFF8E7" />
+                        <stop offset="35%" stopColor="#D4AF37" />
+                        <stop offset="70%" stopColor="#AA7C11" />
+                        <stop offset="100%" stopColor="#553D00" />
+                      </radialGradient>
+                    </defs>
+                    <circle cx="50" cy="50" r="44" fill="url(#wax-grad-bottom)" opacity="0.9" />
+                    <path d="M 45 8 C 55 9, 65 5, 75 12 C 85 20, 95 35, 92 48 C 89 61, 94 75, 83 85 C 72 95, 55 91, 45 92 C 35 93, 20 95, 12 84 C 4 73, 9 55, 7 45 C 5 35, 3 20, 14 12 C 25 4, 35 7, 45 8 Z" fill="url(#wax-grad-bottom)" />
+                    <circle cx="50" cy="50" r="30" fill="none" stroke="#AA7C11" strokeWidth="1.5" strokeDasharray="3,3" />
+                    <circle cx="50" cy="50" r="26" fill="none" stroke="#F3E5AB" strokeWidth="1" />
+                    <path d="M 50 32 C 45 32, 42 38, 42 42 C 42 48, 58 45, 58 52 C 58 58, 50 64, 44 64 M 40 50 L 60 50 M 50 40 A 10 10 0 0 1 50 60" fill="none" stroke="#FFF8E7" strokeWidth="2.5" strokeLinecap="round" />
+                  </svg>
+                </motion.div>
+              )}
+
               {/* Wax Seal - Clicking this triggers the open animation */}
               <AnimatePresence>
                 {!isOpen && (
@@ -298,8 +371,8 @@ export default function Envelope({ onOpen, guestName }: EnvelopeProps) {
                     onClick={handleOpenEnvelope}
                     className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-40 flex items-center justify-center w-16 h-16 sm:w-20 sm:h-20 focus:outline-none cursor-pointer"
                     whileHover={{ scale: 1.1 }}
-                    whileTap={{ scale: 0.9 }}
-                    exit={{ opacity: 0, scale: 0.5, transition: { duration: 0.4 } }}
+                    whileTap={{ scale: 0.95 }}
+                    exit={{ opacity: 0, scale: 0.9, transition: { duration: 0.2 } }}
                   >
                     {/* Pulsing Seal Aura */}
                     <span className="absolute inset-0 rounded-full bg-gold/20 animate-ping opacity-60" />

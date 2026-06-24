@@ -26,10 +26,7 @@ function InvitationContent() {
   // Sync datesRevealed state with browser storage to allow persistence
   useEffect(() => {
     if (typeof window !== "undefined") {
-      const stored = localStorage.getItem("luxury_wedding_dates_revealed");
-      if (stored === "true") {
-        setDatesRevealed(true);
-      }
+      localStorage.removeItem("luxury_wedding_dates_revealed");
     }
 
     // Listen for data resets or updates in Admin
