@@ -64,7 +64,7 @@ export default function AudioPlayer({ url, isPlayingGlobal, setIsPlayingGlobal }
     <div className="fixed bottom-6 right-6 z-50" style={{ bottom: "calc(1.5rem + env(safe-area-inset-bottom, 0px))", right: "calc(1.5rem + env(safe-area-inset-right, 0px))" }}>
       <motion.button
         onClick={togglePlay}
-        className="relative flex h-14 w-14 items-center justify-center rounded-full border border-gold/40 bg-navy/90 text-gold shadow-elevated backdrop-blur-md outline-none cursor-pointer"
+        className="relative flex h-14 w-14 items-center justify-center rounded-full border border-gold/40 bg-navy/90 text-gold shadow-elevated backdrop-blur-md cursor-pointer focus-visible:outline-2 focus-visible:outline-gold"
         whileHover={{ scale: 1.1, borderColor: "rgba(212,175,55,0.8)" }}
         whileTap={{ scale: 0.95 }}
         aria-label={isPlaying ? "Pause music" : "Play background music"}
