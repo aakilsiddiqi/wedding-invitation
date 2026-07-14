@@ -263,7 +263,7 @@ export default function ScratchCard({ data, onReveal }: ScratchCardProps) {
 
         {/* Scratch Card Outer Wrapper */}
         <div
-          className="relative w-full aspect-[4/3] rounded-2xl shadow-xl overflow-hidden border border-gold/30 bg-cream"
+          className="relative w-full aspect-[4/3] rounded-2xl shadow-elevated overflow-hidden border border-gold/30 bg-cream"
         >
           {/* UNDERNEATH CONTENT (The revealed date information) */}
           <div className="absolute inset-0 flex flex-col items-center justify-center p-6 text-center text-navy select-none">

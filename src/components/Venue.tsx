@@ -91,7 +91,7 @@ export default function Venue({ data }: VenueProps) {
                 href={data.googleMapLink}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center gap-2 px-5 py-3 rounded-full border border-gold/30 bg-gold-gradient text-navy font-playfair font-semibold text-xs tracking-wider uppercase hover:shadow-gold transition-all outline-none"
+                className="flex items-center gap-2 px-5 py-3 rounded-full border border-gold/30 bg-gold-gradient text-navy font-playfair font-semibold text-xs tracking-wider uppercase hover:shadow-gold transition-all focus-visible:outline-2 focus-visible:outline-gold"
               >
                 <ExternalLink className="h-4 w-4" />
                 Open In Maps
@@ -100,7 +100,7 @@ export default function Venue({ data }: VenueProps) {
                 href={`https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(data.venueAddress)}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center gap-2 px-5 py-3 rounded-full border border-gold/40 hover:bg-gold/10 text-gold font-playfair font-semibold text-xs tracking-wider uppercase transition-all outline-none"
+                className="flex items-center gap-2 px-5 py-3 rounded-full border border-gold/40 hover:bg-gold/10 text-gold font-playfair font-semibold text-xs tracking-wider uppercase transition-all focus-visible:outline-2 focus-visible:outline-gold"
               >
                 <Navigation className="h-4 w-4" />
                 Get Directions

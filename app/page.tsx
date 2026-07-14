@@ -15,11 +15,6 @@ import IslamicQuote from "@/src/components/IslamicQuote";
 import Footer from "@/src/components/Footer";
 import AudioPlayer from "@/src/components/AudioPlayer";
 
-const sectionVariants = {
-  hidden: { opacity: 0, y: 30 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.8, ease: [0.25, 0.1, 0.25, 1] } },
-};
-
 function InvitationContent() {
   const { data, isLoaded } = useWeddingStore();
   const searchParams = useSearchParams();
@@ -128,8 +123,8 @@ function InvitationContent() {
 
       {/* Full Page Invitation Content */}
       <div className={`transition-all duration-1000 ease-out ${envelopeOpened ? "opacity-100" : "opacity-0 pointer-events-none"}`}>
-        {envelopeOpened && (
-          <div id="main-content">
+          {envelopeOpened && (
+          <div id="main-content" role="main">
             {/* 1. Handwritten Invitation Letter & Greetings */}
             <InvitationLetter data={data} guestName={guestName} />
 
@@ -152,7 +147,7 @@ function InvitationContent() {
                   initial={{ opacity: 0, y: 40 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0 }}
-                  transition={{ duration: 0.8, ease: [0.25, 0.1, 0.25, 1] }}
+                  transition={{ duration: 0.8, ease: [0.19, 1, 0.22, 1] }}
                   className="w-full"
                 >
                   {/* 6. Event Details (Nikah / Walima Cards) */}

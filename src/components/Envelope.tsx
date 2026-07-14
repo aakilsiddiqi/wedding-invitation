@@ -359,7 +359,7 @@ export default function Envelope({ onOpen, guestName }: EnvelopeProps) {
                     tabIndex={0}
                     role="button"
                     aria-label="Open wedding invitation"
-                    className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-40 flex items-center justify-center w-16 h-16 sm:w-20 sm:h-20 focus:outline-none cursor-pointer"
+                    className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-40 flex items-center justify-center w-16 h-16 sm:w-20 sm:h-20 focus-visible:outline-2 focus-visible:outline-gold cursor-pointer"
                     whileHover={{ scale: 1.1 }}
                     whileTap={{ scale: 0.95 }}
                     exit={{ opacity: 0, scale: 0.9, transition: { duration: 0.2 } }}

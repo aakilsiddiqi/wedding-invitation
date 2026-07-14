@@ -60,7 +60,7 @@ export default function Countdown({ targetDate }: CountdownProps) {
   ];
 
   return (
-    <section className="relative py-24 bg-navy text-cream overflow-hidden" aria-live="polite" aria-label="Wedding countdown timer">
+    <section className="relative py-24 bg-navy text-cream overflow-hidden" aria-live="polite" aria-label="Wedding countdown timer" role="timer">
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[300px] bg-gold/5 rounded-full blur-3xl pointer-events-none" />
       <div className="absolute inset-0 islamic-pattern opacity-10" />
 

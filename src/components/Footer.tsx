@@ -116,7 +116,7 @@ export default function Footer({ data }: FooterProps) {
           whileInView={{ opacity: 1 }}
           viewport={{ once: true }}
           transition={{ duration: 0.8, delay: 0.5, ease: easeOutExpo }}
-          className="mt-10 mx-auto flex items-center gap-2 px-5 py-2 rounded-full border border-gold/20 text-gold/60 hover:text-gold hover:border-gold/40 text-xs uppercase tracking-widest transition-all"
+          className="mt-10 mx-auto flex items-center gap-2 px-5 py-2 rounded-full border border-gold/20 text-gold/60 hover:text-gold hover:border-gold/40 text-xs uppercase tracking-widest transition-all focus-visible:outline-2 focus-visible:outline-gold"
           aria-label="Scroll to top"
         >
           <ArrowUp className="h-3 w-3" />
