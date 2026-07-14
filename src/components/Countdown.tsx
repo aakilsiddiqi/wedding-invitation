@@ -15,6 +15,8 @@ interface TimeLeft {
   isCompleted: boolean;
 }
 
+const easeOutExpo: [number, number, number, number] = [0.19, 1, 0.22, 1];
+
 export default function Countdown({ targetDate }: CountdownProps) {
   const [timeLeft, setTimeLeft] = useState<TimeLeft>({
     days: 0,
@@ -58,27 +60,24 @@ export default function Countdown({ targetDate }: CountdownProps) {
   ];
 
   return (
-    <section className="relative py-20 bg-navy text-cream overflow-hidden">
-      {/* Background radial gold glow */}
+    <section className="relative py-24 bg-navy text-cream overflow-hidden" aria-live="polite" aria-label="Wedding countdown timer">
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[300px] bg-gold/5 rounded-full blur-3xl pointer-events-none" />
       <div className="absolute inset-0 islamic-pattern opacity-10" />
 
       <div className="max-w-4xl mx-auto px-4 relative z-10 flex flex-col items-center">
-        {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: 15 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          transition={{ duration: 0.8 }}
-          className="text-center mb-10"
+          transition={{ duration: 0.8, ease: easeOutExpo }}
+          className="text-center mb-12"
         >
           <span className="text-xs uppercase tracking-[0.3em] text-gold font-cormorant">Countdown to union</span>
-          <h2 className="font-playfair text-2xl sm:text-4xl font-light text-cream mt-1 tracking-wide">
+          <h2 className="font-playfair text-[clamp(1.5rem,4vw,2.5rem)] sm:text-4xl font-light text-cream mt-1 tracking-wide">
             {timeLeft.isCompleted ? "Alhamdulillah! The Celebration Has Begun" : "Counting Down The Seconds"}
           </h2>
         </motion.div>
 
-        {/* Countdown Grid */}
         {!timeLeft.isCompleted ? (
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6 w-full max-w-2xl justify-center">
             {timeItems.map((item, index) => (
@@ -87,21 +86,18 @@ export default function Countdown({ targetDate }: CountdownProps) {
                 initial={{ opacity: 0, scale: 0.9 }}
                 whileInView={{ opacity: 1, scale: 1 }}
                 viewport={{ once: true }}
-                transition={{ duration: 0.6, delay: index * 0.1 }}
-                className="relative bg-navy-light/50 border border-gold/20 backdrop-blur-md rounded-2xl p-6 sm:p-8 flex flex-col items-center justify-center glow-effect overflow-hidden"
+                transition={{ duration: 0.6, delay: index * 0.1, ease: easeOutExpo }}
+                className="relative bg-navy-light/50 border border-gold/20 backdrop-blur-md rounded-2xl p-6 sm:p-8 flex flex-col items-center justify-center glow-effect overflow-hidden shadow-card"
               >
-                {/* Gold framing details */}
                 <div className="absolute top-2 left-2 w-3.5 h-3.5 border-t border-l border-gold/40" />
                 <div className="absolute top-2 right-2 w-3.5 h-3.5 border-t border-r border-gold/40" />
                 <div className="absolute bottom-2 left-2 w-3.5 h-3.5 border-b border-l border-gold/40" />
                 <div className="absolute bottom-2 right-2 w-3.5 h-3.5 border-b border-r border-gold/40" />
 
-                {/* Live Number */}
-                <span className="font-playfair text-4xl sm:text-5xl font-bold text-gold-gradient tracking-tight">
+                <span className="font-playfair text-[clamp(2rem,6vw,3rem)] sm:text-5xl font-bold text-gold-gradient tracking-tight">
                   {String(item.value).padStart(2, "0")}
                 </span>
                 
-                {/* Label */}
                 <span className="text-xs uppercase tracking-[0.2em] text-cream/60 mt-3 font-cormorant">
                   {item.label}
                 </span>
@@ -112,7 +108,8 @@ export default function Countdown({ targetDate }: CountdownProps) {
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
-            className="border border-gold/30 bg-navy-light/40 backdrop-blur-md rounded-3xl p-8 sm:p-12 text-center max-w-md glow-effect"
+            transition={{ duration: 0.8, ease: easeOutExpo }}
+            className="border border-gold/30 bg-navy-light/40 backdrop-blur-md rounded-3xl p-8 sm:p-12 text-center max-w-md glow-effect shadow-elevated"
           >
             <p className="font-playfair text-xl text-gold italic">Barakallahu Lakuma wa Baraka Alaikuma wa Jamaa Bainakuma Fee Khair</p>
             <p className="font-cormorant text-sm text-cream/70 mt-4 leading-relaxed">

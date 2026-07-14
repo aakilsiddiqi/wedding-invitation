@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ChevronDown } from "lucide-react";
 
@@ -9,11 +9,15 @@ interface EnvelopeProps {
   guestName: string;
 }
 
+const easeOutExpo: [number, number, number, number] = [0.19, 1, 0.22, 1];
+
 export default function Envelope({ onOpen, guestName }: EnvelopeProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [isOpenedFully, setIsOpenedFully] = useState(false);
   const [bringCardToFront, setBringCardToFront] = useState(false);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const animationIdRef = useRef<number>(0);
+  const isCleanedUp = useRef(false);
 
   // Background particle context & rose petal rainfall setup
   useEffect(() => {
@@ -22,7 +26,6 @@ export default function Envelope({ onOpen, guestName }: EnvelopeProps) {
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
-    let animationId: number;
     let width = (canvas.width = window.innerWidth);
     let height = (canvas.height = window.innerHeight);
 
@@ -32,7 +35,6 @@ export default function Envelope({ onOpen, guestName }: EnvelopeProps) {
     };
     window.addEventListener("resize", handleResize);
 
-    // Particles (stars) in the background
     const stars: Array<{ x: number; y: number; size: number; speed: number; alpha: number }> = [];
     for (let i = 0; i < 60; i++) {
       stars.push({
@@ -44,16 +46,9 @@ export default function Envelope({ onOpen, guestName }: EnvelopeProps) {
       });
     }
 
-    // Rose petals (only active after envelope is clicked)
     interface Petal {
-      x: number;
-      y: number;
-      size: number;
-      speedX: number;
-      speedY: number;
-      opacity: number;
-      rotation: number;
-      rotationSpeed: number;
+      x: number; y: number; size: number; speedX: number; speedY: number;
+      opacity: number; rotation: number; rotationSpeed: number;
     }
     const petals: Petal[] = [];
     const createPetals = () => {
@@ -72,8 +67,8 @@ export default function Envelope({ onOpen, guestName }: EnvelopeProps) {
     };
 
     let triggerPetals = false;
+    let running = true;
 
-    // Listen for custom trigger to start rose rain
     const handleEnvelopeOpen = () => {
       triggerPetals = true;
       createPetals();
@@ -82,9 +77,9 @@ export default function Envelope({ onOpen, guestName }: EnvelopeProps) {
     window.addEventListener("start-rose-rain", handleEnvelopeOpen);
 
     const render = () => {
+      if (!running) return;
       ctx.clearRect(0, 0, width, height);
 
-      // Render stars
       ctx.fillStyle = "#D4AF37";
       stars.forEach((star) => {
         star.y += star.speed;
@@ -98,14 +93,12 @@ export default function Envelope({ onOpen, guestName }: EnvelopeProps) {
         ctx.fill();
       });
 
-      // Render rose petals if triggered
       if (triggerPetals) {
         petals.forEach((petal) => {
           petal.y += petal.speedY;
           petal.x += petal.speedX + Math.sin(petal.y / 30) * 0.5;
           petal.rotation += petal.rotationSpeed;
 
-          // Recycle petals
           if (petal.y > height + 20) {
             petal.y = -20;
             petal.x = Math.random() * width;
@@ -116,16 +109,14 @@ export default function Envelope({ onOpen, guestName }: EnvelopeProps) {
           ctx.rotate((petal.rotation * Math.PI) / 180);
           ctx.globalAlpha = petal.opacity;
 
-          // Drawing a single premium organic rose petal shape
           ctx.beginPath();
-          ctx.fillStyle = "rgba(224, 60, 96, 0.85)"; // Beautiful rose pink/crimson
+          ctx.fillStyle = "rgba(224, 60, 96, 0.85)";
           ctx.bezierCurveTo(0, 0, -petal.size / 2, -petal.size / 2, -petal.size, 0);
           ctx.bezierCurveTo(-petal.size, 0, -petal.size / 2, petal.size, 0, petal.size);
           ctx.bezierCurveTo(0, petal.size, petal.size / 2, petal.size, petal.size, 0);
           ctx.bezierCurveTo(petal.size, 0, petal.size / 2, -petal.size / 2, 0, 0);
           ctx.fill();
 
-          // Add simple vein/highlight
           ctx.beginPath();
           ctx.strokeStyle = "rgba(180, 20, 50, 0.4)";
           ctx.lineWidth = 0.5;
@@ -138,39 +129,42 @@ export default function Envelope({ onOpen, guestName }: EnvelopeProps) {
       }
 
       ctx.globalAlpha = 1.0;
-      animationId = requestAnimationFrame(render);
+      animationIdRef.current = requestAnimationFrame(render);
     };
 
     render();
 
     return () => {
+      running = false;
       window.removeEventListener("resize", handleResize);
       window.removeEventListener("start-rose-rain", handleEnvelopeOpen);
-      cancelAnimationFrame(animationId);
+      cancelAnimationFrame(animationIdRef.current);
     };
   }, []);
 
-  const handleOpenEnvelope = () => {
+  const handleOpenEnvelope = useCallback(() => {
     if (isOpen) return;
     setIsOpen(true);
-    // Play sound, start rose rain, transition out
     window.dispatchEvent(new Event("start-rose-rain"));
-    
-    // Bring the card to the front only after the top flap has finished opening (800ms)
+
     setTimeout(() => {
       setBringCardToFront(true);
     }, 800);
 
-    // Stage 1: Seal fades/scale-down, flap opens (takes ~1.2s total)
-    // Stage 2: Card slides out (takes ~1s)
-    // Stage 3: Envelope fades out completely and unlocks invitation
     setTimeout(() => {
       setIsOpenedFully(true);
       setTimeout(() => {
         onOpen();
       }, 800);
     }, 1800);
-  };
+  }, [isOpen, onOpen]);
+
+  const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
+    if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      handleOpenEnvelope();
+    }
+  }, [handleOpenEnvelope]);
 
   return (
     <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-navy text-cream overflow-hidden">
@@ -200,13 +194,13 @@ export default function Envelope({ onOpen, guestName }: EnvelopeProps) {
           <motion.div
             className="flex flex-col items-center z-10 w-full px-4 text-center max-w-xl"
             exit={{ opacity: 0, scale: 0.95 }}
-            transition={{ duration: 0.8, ease: "easeInOut" }}
+            transition={{ duration: 0.8, ease: easeOutExpo }}
           >
             {/* Header Text */}
             <motion.p
               initial={{ opacity: 0, y: -20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.3, duration: 1 }}
+              transition={{ delay: 0.3, duration: 1, ease: easeOutExpo }}
               className="font-playfair text-lg sm:text-xl tracking-[0.2em] text-gold uppercase mb-2"
             >
               بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ
@@ -214,7 +208,7 @@ export default function Envelope({ onOpen, guestName }: EnvelopeProps) {
             <motion.p
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              transition={{ delay: 0.7, duration: 1 }}
+              transition={{ delay: 0.7, duration: 1, ease: easeOutExpo }}
               className="text-xs sm:text-sm tracking-[0.3em] font-cormorant text-gold/60 uppercase mb-8"
             >
               Bismillahir Rahmanir Rahim
@@ -223,33 +217,31 @@ export default function Envelope({ onOpen, guestName }: EnvelopeProps) {
             <motion.h1
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: 0.9, duration: 1.2 }}
-              className="font-playfair text-3xl sm:text-5xl font-light tracking-[0.1em] text-gold-gradient uppercase mb-12"
+              transition={{ delay: 0.9, duration: 1.2, ease: easeOutExpo }}
+              className="font-playfair text-[clamp(1.75rem,5vw,3rem)] sm:text-5xl font-light tracking-[0.1em] text-gold-gradient uppercase mb-12"
             >
               You Are Invited
             </motion.h1>
 
             {/* 3D Envelope container */}
-            <div className="relative w-[320px] h-[210px] sm:w-[460px] sm:h-[300px] mt-2 mb-12 perspective-[1000px]">
+            <div className="relative w-[clamp(280px,70vw,460px)] h-[clamp(180px,45vw,300px)] mt-2 mb-12 perspective-[1000px]">
               {/* Back flap (interior of the envelope) */}
               <div className="absolute inset-0 bg-gold-dark rounded-lg shadow-2xl overflow-hidden border border-gold/30">
                 <div className="absolute inset-0 bg-navy opacity-95 flex items-center justify-center">
-                  {/* Luxury Inner Lining pattern */}
                   <div className="w-full h-full islamic-pattern opacity-25" />
                 </div>
               </div>
 
               {/* The Letter Card inside */}
               <motion.div
-                className="absolute inset-x-4 top-2 bottom-2 bg-cream rounded-md p-4 text-navy flex flex-col justify-center items-center shadow-lg border border-gold/30"
+                className="absolute inset-x-4 top-2 bottom-2 bg-cream rounded-md p-4 text-navy flex flex-col justify-center items-center shadow-elevated border border-gold/30"
                 style={{ zIndex: bringCardToFront ? 20 : 0 }}
-                initial={{ y: 0, opacity: 0.8, scale: 0.95, z: 0 }}
-                animate={isOpen ? { y: -180, opacity: 1, scale: 1.08, z: 50 } : { y: 0, opacity: 0.8, scale: 0.95, z: 0 }}
+                initial={{ y: 0, opacity: 0.8, scale: 0.95 }}
+                animate={isOpen ? { y: -180, opacity: 1, scale: 1.08 } : { y: 0, opacity: 0.8, scale: 0.95 }}
                 transition={{
-                  y: { delay: 0.8, duration: 1.2, ease: "easeOut" },
-                  opacity: { delay: 0.8, duration: 1.2, ease: "easeOut" },
-                  scale: { delay: 0.8, duration: 1.2, ease: "easeOut" },
-                  z: { delay: 0.8, duration: 1.2, ease: "easeOut" }
+                  y: { delay: 0.8, duration: 1.2, ease: easeOutExpo },
+                  opacity: { delay: 0.8, duration: 1.2, ease: easeOutExpo },
+                  scale: { delay: 0.8, duration: 1.2, ease: easeOutExpo },
                 }}
               >
                 <div className="border border-gold/20 w-full h-full rounded p-3 flex flex-col justify-between items-center text-center">
@@ -263,9 +255,8 @@ export default function Envelope({ onOpen, guestName }: EnvelopeProps) {
                 </div>
               </motion.div>
 
-              {/* Bottom and Side Flaps (these overlay in front of the letter initially) */}
+              {/* Bottom and Side Flaps */}
               <div className="absolute inset-0 pointer-events-none z-10">
-                {/* Left Side Flap */}
                 <div 
                   className="absolute left-0 bottom-0 top-0 w-1/2 bg-navy border-l border-gold/20 shadow-md"
                   style={{
@@ -273,7 +264,6 @@ export default function Envelope({ onOpen, guestName }: EnvelopeProps) {
                     background: "linear-gradient(to right, #0F172A, #1E293B)",
                   }}
                 />
-                {/* Right Side Flap */}
                 <div 
                   className="absolute right-0 bottom-0 top-0 w-1/2 bg-navy border-r border-gold/20 shadow-md"
                   style={{
@@ -281,7 +271,6 @@ export default function Envelope({ onOpen, guestName }: EnvelopeProps) {
                     background: "linear-gradient(to left, #0F172A, #1E293B)",
                   }}
                 />
-                {/* Bottom Flap */}
                 <div 
                   className="absolute left-0 right-0 bottom-0 h-1/2 bg-navy border-b border-gold/20 shadow-lg"
                   style={{
@@ -291,7 +280,7 @@ export default function Envelope({ onOpen, guestName }: EnvelopeProps) {
                 />
               </div>
 
-              {/* Top Flap (folds over from the top) */}
+              {/* Top Flap */}
               <motion.div
                 className="absolute left-0 right-0 top-0 h-1/2 bg-navy border-t border-gold/20 z-30"
                 style={{
@@ -300,18 +289,15 @@ export default function Envelope({ onOpen, guestName }: EnvelopeProps) {
                   originY: 0,
                 }}
                 animate={isOpen ? { rotateX: -180, zIndex: 5 } : { rotateX: 0 }}
-                transition={{ duration: 0.8, ease: "easeInOut" }}
+                transition={{ duration: 0.8, ease: easeOutExpo }}
               />
 
-              {/* Top Seal Wrapper (Rotates with the top flap to avoid triangle clipping) */}
+              {/* Top Seal Wrapper */}
               <motion.div
                 className="absolute left-0 right-0 top-0 h-1/2 pointer-events-none z-30"
-                style={{
-                  originY: 0,
-                  perspective: "1000px",
-                }}
+                style={{ originY: 0, perspective: "1000px" }}
                 animate={isOpen ? { rotateX: -180, zIndex: 5 } : { rotateX: 0, zIndex: 35 }}
-                transition={{ duration: 0.8, ease: "easeInOut" }}
+                transition={{ duration: 0.8, ease: easeOutExpo }}
               >
                 {isOpen && (
                   <div 
@@ -337,14 +323,14 @@ export default function Envelope({ onOpen, guestName }: EnvelopeProps) {
                 )}
               </motion.div>
 
-              {/* Bottom Half of Wax Seal (Slides down and fades out) */}
+              {/* Bottom Half of Wax Seal */}
               {isOpen && (
                 <motion.div
                   className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-20 w-16 h-16 sm:w-20 sm:h-20 pointer-events-none"
                   style={{ clipPath: "inset(50% 0% 0% 0%)" }}
                   initial={{ y: 0, opacity: 1, scale: 1, rotate: 0 }}
                   animate={{ y: 30, opacity: 0, scale: 0.9, rotate: 5 }}
-                  transition={{ duration: 0.8, ease: "easeOut" }}
+                  transition={{ duration: 0.8, ease: easeOutExpo }}
                 >
                   <svg className="w-full h-full drop-shadow-lg text-gold-gradient fill-current" viewBox="0 0 100 100">
                     <defs>
@@ -364,20 +350,22 @@ export default function Envelope({ onOpen, guestName }: EnvelopeProps) {
                 </motion.div>
               )}
 
-              {/* Wax Seal - Clicking this triggers the open animation */}
+              {/* Wax Seal Button */}
               <AnimatePresence>
                 {!isOpen && (
                   <motion.button
                     onClick={handleOpenEnvelope}
+                    onKeyDown={handleKeyDown}
+                    tabIndex={0}
+                    role="button"
+                    aria-label="Open wedding invitation"
                     className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-40 flex items-center justify-center w-16 h-16 sm:w-20 sm:h-20 focus:outline-none cursor-pointer"
                     whileHover={{ scale: 1.1 }}
                     whileTap={{ scale: 0.95 }}
                     exit={{ opacity: 0, scale: 0.9, transition: { duration: 0.2 } }}
                   >
-                    {/* Pulsing Seal Aura */}
                     <span className="absolute inset-0 rounded-full bg-gold/20 animate-ping opacity-60" />
                     
-                    {/* Melting Wax SVG Seal */}
                     <svg className="w-full h-full drop-shadow-lg text-gold-gradient fill-current" viewBox="0 0 100 100">
                       <defs>
                         <radialGradient id="wax-grad" cx="50%" cy="50%" r="50%">
@@ -387,14 +375,10 @@ export default function Envelope({ onOpen, guestName }: EnvelopeProps) {
                           <stop offset="100%" stopColor="#553D00" />
                         </radialGradient>
                       </defs>
-                      {/* Wax Outer Border */}
                       <circle cx="50" cy="50" r="44" fill="url(#wax-grad)" opacity="0.9" />
-                      {/* Melted organic contours */}
                       <path d="M 45 8 C 55 9, 65 5, 75 12 C 85 20, 95 35, 92 48 C 89 61, 94 75, 83 85 C 72 95, 55 91, 45 92 C 35 93, 20 95, 12 84 C 4 73, 9 55, 7 45 C 5 35, 3 20, 14 12 C 25 4, 35 7, 45 8 Z" fill="url(#wax-grad)" />
-                      {/* Inner gold crest ring */}
                       <circle cx="50" cy="50" r="30" fill="none" stroke="#AA7C11" strokeWidth="1.5" strokeDasharray="3,3" />
                       <circle cx="50" cy="50" r="26" fill="none" stroke="#F3E5AB" strokeWidth="1" />
-                      {/* Bismillah Calligraphy Stamp or Calligraphy initial - let's render an ornate calligraphy pattern */}
                       <path d="M 50 32 C 45 32, 42 38, 42 42 C 42 48, 58 45, 58 52 C 58 58, 50 64, 44 64 M 40 50 L 60 50 M 50 40 A 10 10 0 0 1 50 60" fill="none" stroke="#FFF8E7" strokeWidth="2.5" strokeLinecap="round" />
                     </svg>
                   </motion.button>
@@ -406,7 +390,7 @@ export default function Envelope({ onOpen, guestName }: EnvelopeProps) {
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              transition={{ delay: 1.2, duration: 1 }}
+              transition={{ delay: 1.2, duration: 1, ease: easeOutExpo }}
               className="flex flex-col items-center"
             >
               <p className="font-cormorant text-base sm:text-lg tracking-widest text-cream/70 uppercase">
