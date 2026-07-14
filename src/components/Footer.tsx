@@ -1,35 +1,40 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Phone } from "lucide-react";
+import { Phone, ArrowUp } from "lucide-react";
 import { WeddingData } from "../utils/weddingStore";
 
 interface FooterProps {
   data: WeddingData;
 }
 
+const easeOutExpo: [number, number, number, number] = [0.19, 1, 0.22, 1];
+
 export default function Footer({ data }: FooterProps) {
+  const year = new Date().getFullYear();
+
+  const scrollToTop = () => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
   return (
     <footer className="relative bg-navy text-cream py-24 px-4 overflow-hidden">
-      {/* Background patterns */}
       <div className="absolute inset-0 islamic-pattern opacity-10" />
       <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[600px] h-[300px] bg-gold/5 rounded-full blur-3xl pointer-events-none" />
 
-      {/* Outer borders */}
       <div className="absolute inset-4 border border-gold/15 pointer-events-none rounded-lg" />
       <div className="absolute inset-6 border border-gold/25 pointer-events-none rounded-lg" />
 
       <div className="max-w-4xl mx-auto text-center relative z-10">
-        {/* Thank You Note */}
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          transition={{ duration: 1.0 }}
+          transition={{ duration: 1.0, ease: easeOutExpo }}
           className="mb-16"
         >
           <span className="text-[10px] sm:text-xs uppercase tracking-[0.3em] text-gold/60 font-cormorant">A Gracious Thank You</span>
-          <h2 className="font-playfair text-3xl sm:text-4xl font-light text-gold-gradient mt-2 mb-6">
+          <h2 className="font-playfair text-[clamp(1.75rem,5vw,2.5rem)] sm:text-4xl font-light text-gold-gradient mt-2 mb-6">
             Thank You
           </h2>
           <p className="font-cormorant text-base sm:text-lg text-cream/80 max-w-lg mx-auto leading-relaxed italic">
@@ -37,19 +42,17 @@ export default function Footer({ data }: FooterProps) {
           </p>
         </motion.div>
 
-        {/* Divider */}
         <div className="flex items-center justify-center gap-3 w-40 mx-auto opacity-30 mb-16">
           <div className="h-[1px] flex-1 bg-gold" />
           <div className="w-2 h-2 rounded-full border border-gold rotate-45" />
           <div className="h-[1px] flex-1 bg-gold" />
         </div>
 
-        {/* Compliments Section */}
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          transition={{ duration: 1.0, delay: 0.2 }}
+          transition={{ duration: 1.0, delay: 0.2, ease: easeOutExpo }}
           className="mb-16"
         >
           <h3 className="font-playfair text-lg sm:text-xl text-gold uppercase tracking-[0.2em] mb-10">
@@ -57,8 +60,7 @@ export default function Footer({ data }: FooterProps) {
           </h3>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 text-center max-w-2xl mx-auto">
-            {/* Bride's Family */}
-            <div className="p-6 rounded-2xl border border-gold/10 bg-navy-light/30 backdrop-blur-sm">
+            <div className="p-6 rounded-2xl border border-gold/10 bg-navy-light/30 backdrop-blur-sm shadow-card">
               <span className="text-[10px] tracking-widest text-gold uppercase font-cormorant">Bride's Family</span>
               <h4 className="font-playfair text-base sm:text-lg font-bold text-cream mt-2 mb-4 leading-tight">
                 {data.brideFamily}
@@ -72,8 +74,7 @@ export default function Footer({ data }: FooterProps) {
               </a>
             </div>
 
-            {/* Groom's Family */}
-            <div className="p-6 rounded-2xl border border-gold/10 bg-navy-light/30 backdrop-blur-sm">
+            <div className="p-6 rounded-2xl border border-gold/10 bg-navy-light/30 backdrop-blur-sm shadow-card">
               <span className="text-[10px] tracking-widest text-gold uppercase font-cormorant">Groom's Family</span>
               <h4 className="font-playfair text-base sm:text-lg font-bold text-cream mt-2 mb-4 leading-tight">
                 {data.groomFamily}
@@ -89,12 +90,11 @@ export default function Footer({ data }: FooterProps) {
           </div>
         </motion.div>
 
-        {/* Elegant footer bottom ornament (SVG) */}
         <motion.div
           initial={{ opacity: 0, scale: 0.8 }}
           whileInView={{ opacity: 1, scale: 1 }}
           viewport={{ once: true }}
-          transition={{ duration: 1.0, delay: 0.3 }}
+          transition={{ duration: 1.0, delay: 0.3, ease: easeOutExpo }}
           className="text-gold opacity-50 w-24 h-12 mx-auto fill-current"
         >
           <svg viewBox="0 0 100 50" xmlns="http://www.w3.org/2000/svg">
@@ -106,8 +106,22 @@ export default function Footer({ data }: FooterProps) {
         </motion.div>
 
         <p className="text-[10px] font-cormorant tracking-widest text-cream/40 uppercase mt-8">
-          &copy; {new Date().getFullYear()} Ayesha & Zayd Wedding Invitation. All rights reserved.
+          &copy; {year} Ayesha & Zayd Wedding Invitation. All rights reserved.
         </p>
+
+        {/* Back to top */}
+        <motion.button
+          onClick={scrollToTop}
+          initial={{ opacity: 0 }}
+          whileInView={{ opacity: 1 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.8, delay: 0.5, ease: easeOutExpo }}
+          className="mt-10 mx-auto flex items-center gap-2 px-5 py-2 rounded-full border border-gold/20 text-gold/60 hover:text-gold hover:border-gold/40 text-xs uppercase tracking-widest transition-all"
+          aria-label="Scroll to top"
+        >
+          <ArrowUp className="h-3 w-3" />
+          Back to top
+        </motion.button>
       </div>
     </footer>
   );

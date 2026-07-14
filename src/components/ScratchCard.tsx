@@ -144,6 +144,8 @@ export default function ScratchCard({ data, onReveal }: ScratchCardProps) {
     };
   };
 
+  const lastCheckRef = useRef(0);
+
   const draw = (x: number, y: number) => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -152,10 +154,14 @@ export default function ScratchCard({ data, onReveal }: ScratchCardProps) {
 
     ctx.globalCompositeOperation = "destination-out";
     ctx.beginPath();
-    ctx.arc(x, y, 32, 0, Math.PI * 2); // Slightly larger scratch size for better responsiveness
+    ctx.arc(x, y, 32, 0, Math.PI * 2);
     ctx.fill();
 
-    checkScratchPercentage();
+    const now = performance.now();
+    if (now - lastCheckRef.current > 200) {
+      lastCheckRef.current = now;
+      checkScratchPercentage();
+    }
   };
 
   const handleStart = (e: any) => {
@@ -177,6 +183,17 @@ export default function ScratchCard({ data, onReveal }: ScratchCardProps) {
     setIsDrawing(false);
   };
 
+  const handleKeyboardReveal = () => {
+    setIsScratchedFully(true);
+    setShowConfetti(true);
+    if (onReveal) {
+      onReveal();
+    }
+    setTimeout(() => {
+      setShowConfetti(false);
+    }, 6000);
+  };
+
   const checkScratchPercentage = () => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -189,7 +206,6 @@ export default function ScratchCard({ data, onReveal }: ScratchCardProps) {
     const pixels = imageData.data;
     let transparentCount = 0;
 
-    // Check every 4th pixel for speed optimization
     for (let i = 3; i < pixels.length; i += 16) {
       if (pixels[i] === 0) {
         transparentCount++;
@@ -199,17 +215,14 @@ export default function ScratchCard({ data, onReveal }: ScratchCardProps) {
     const totalSampledPixels = pixels.length / 16;
     const percentage = transparentCount / totalSampledPixels;
 
-    // Lower threshold to 40% scratch coverage to make unlocking feel seamless
     if (percentage > 0.4) {
       setIsScratchedFully(true);
       setShowConfetti(true);
       
-      // Notify parent component to unlock subsequent pages
       if (onReveal) {
         onReveal();
       }
       
-      // Stop confetti after 6 seconds
       setTimeout(() => {
         setShowConfetti(false);
       }, 6000);
@@ -305,16 +318,34 @@ export default function ScratchCard({ data, onReveal }: ScratchCardProps) {
           </AnimatePresence>
         </div>
 
+        {/* Keyboard accessible reveal button */}
+        <AnimatePresence>
+          {!isScratchedFully && (
+            <motion.button
+              onClick={handleKeyboardReveal}
+              onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleKeyboardReveal(); } }}
+              tabIndex={0}
+              aria-label="Reveal wedding dates"
+              className="mt-6 px-6 py-3 rounded-full border border-gold/30 bg-gold-gradient text-navy font-playfair font-semibold text-xs tracking-wider uppercase shadow-gold hover:shadow-gold-lg transition-all"
+              initial={{ opacity: 0, y: 10 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+            >
+              Reveal Dates
+            </motion.button>
+          )}
+        </AnimatePresence>
+
         {/* Celebration text beneath */}
         <AnimatePresence>
           {isScratchedFully && (
             <motion.p
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5 }}
-              className="text-xs uppercase font-playfair tracking-[0.25em] text-gold mt-6 text-center animate-pulse"
+              transition={{ duration: 0.5, ease: [0.19, 1, 0.22, 1] }}
+              className="text-xs uppercase font-playfair tracking-[0.25em] text-gold mt-6 text-center"
             >
-              🎉 Alhamdulillah! You revealed the dates.
+              Alhamdulillah! You revealed the dates.
             </motion.p>
           )}
         </AnimatePresence>

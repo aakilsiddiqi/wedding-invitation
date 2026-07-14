@@ -8,6 +8,8 @@ interface EventDetailsProps {
   data: WeddingData;
 }
 
+const easeOutExpo: [number, number, number, number] = [0.19, 1, 0.22, 1];
+
 export default function EventDetails({ data }: EventDetailsProps) {
   const events = [
     {
@@ -17,7 +19,6 @@ export default function EventDetails({ data }: EventDetailsProps) {
       date: data.nikahDate,
       time: data.nikahTime,
       venue: data.venueName,
-      // Custom Gold SVG Islamic Lantern Icon
       icon: (
         <svg className="w-12 h-12 text-gold fill-current" viewBox="0 0 100 100">
           <path d="M 50 5 L 50 15 M 40 15 L 60 15 C 60 15, 65 30, 75 35 C 75 35, 78 45, 68 55 L 68 80 C 68 85, 62 90, 50 90 C 38 90, 32 85, 32 80 L 32 55 C 22 45, 25 35, 25 35 C 35 30, 40 15, 40 15 Z" fill="none" stroke="currentColor" strokeWidth="2.5" />
@@ -33,7 +34,6 @@ export default function EventDetails({ data }: EventDetailsProps) {
       date: data.walimaDate,
       time: data.walimaTime,
       venue: data.venueName,
-      // Custom Gold SVG Islamic Dome/Minaret Icon
       icon: (
         <svg className="w-12 h-12 text-gold fill-current" viewBox="0 0 100 100">
           <path d="M 50 5 C 50 5, 45 18, 30 25 C 20 30, 20 40, 20 40 L 80 40 C 80 40, 80 30, 70 25 C 55 18, 50 5, 50 5 Z" fill="none" stroke="currentColor" strokeWidth="2.5" />
@@ -47,20 +47,18 @@ export default function EventDetails({ data }: EventDetailsProps) {
 
   return (
     <section className="relative py-24 bg-luxury-bg overflow-hidden">
-      {/* Background patterns */}
       <div className="absolute inset-0 islamic-pattern opacity-10" />
       
       <div className="max-w-5xl mx-auto px-4 relative z-10">
-        {/* Title */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          transition={{ duration: 0.8 }}
+          transition={{ duration: 0.8, ease: easeOutExpo }}
           className="text-center mb-16"
         >
           <span className="text-xs uppercase tracking-[0.3em] text-gold font-cormorant">Schedule of celebrations</span>
-          <h2 className="font-playfair text-3xl sm:text-5xl font-light text-navy tracking-wide mt-2">
+          <h2 className="font-playfair text-[clamp(1.75rem,5vw,3rem)] sm:text-5xl font-light text-navy tracking-wide mt-2">
             Event Details
           </h2>
           <div className="mt-4 flex items-center justify-center gap-2">
@@ -70,7 +68,6 @@ export default function EventDetails({ data }: EventDetailsProps) {
           </div>
         </motion.div>
 
-        {/* Cards Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 lg:gap-12 max-w-4xl mx-auto">
           {events.map((event, index) => (
             <motion.div
@@ -78,24 +75,20 @@ export default function EventDetails({ data }: EventDetailsProps) {
               initial={{ opacity: 0, y: 40 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
-              transition={{ duration: 1.0, delay: index * 0.2 }}
-              className="paper-texture relative rounded-[32px] p-8 sm:p-10 border border-gold/30 shadow-xl flex flex-col justify-between overflow-hidden group hover:shadow-2xl transition-all duration-500"
+              transition={{ duration: 1.0, delay: index * 0.2, ease: easeOutExpo }}
+              className="paper-texture relative rounded-[32px] p-8 sm:p-10 border border-gold/30 shadow-elevated flex flex-col justify-between overflow-hidden group hover:shadow-gold transition-all duration-500"
             >
-              {/* Inner outline */}
               <div className="absolute inset-3 border border-gold/15 rounded-[24px] pointer-events-none group-hover:border-gold/30 transition-colors" />
 
               <div className="relative z-10 flex flex-col items-center text-center">
-                {/* Custom SVG Icon */}
-                <div className="mb-6 flex items-center justify-center w-20 h-20 rounded-full bg-cream border border-gold/20 shadow-md">
+                <div className="mb-6 flex items-center justify-center w-20 h-20 rounded-full bg-cream border border-gold/20 shadow-soft">
                   {event.icon}
                 </div>
 
-                {/* Event Arabic Calligraphic Title representation */}
                 <span className="font-urdu text-xl text-gold-gradient tracking-wide mb-1 opacity-80 select-none">
                   {event.arabicTitle}
                 </span>
 
-                {/* Event Name */}
                 <h3 className="font-playfair text-2xl sm:text-3xl font-bold text-navy tracking-wide mt-2">
                   {event.title}
                 </h3>
@@ -104,7 +97,6 @@ export default function EventDetails({ data }: EventDetailsProps) {
                   {event.description}
                 </p>
 
-                {/* Details List */}
                 <div className="w-full flex flex-col gap-4 text-left border-t border-gold/15 pt-6 max-w-xs">
                   <div className="flex items-center gap-3">
                     <Calendar className="h-5 w-5 text-gold shrink-0" />

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, Suspense } from "react";
+import { useState, useEffect, Suspense, useCallback } from "react";
 import { useSearchParams } from "next/navigation";
 import { useWeddingStore } from "@/src/utils/weddingStore";
 import { motion, AnimatePresence } from "framer-motion";
@@ -15,6 +15,11 @@ import IslamicQuote from "@/src/components/IslamicQuote";
 import Footer from "@/src/components/Footer";
 import AudioPlayer from "@/src/components/AudioPlayer";
 
+const sectionVariants = {
+  hidden: { opacity: 0, y: 30 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.8, ease: [0.25, 0.1, 0.25, 1] } },
+};
+
 function InvitationContent() {
   const { data, isLoaded } = useWeddingStore();
   const searchParams = useSearchParams();
@@ -23,17 +28,17 @@ function InvitationContent() {
   const [guestName, setGuestName] = useState("Dear Valued Guest");
   const [datesRevealed, setDatesRevealed] = useState(false);
 
-  // Sync datesRevealed state with browser storage to allow persistence
+  // Sync datesRevealed state with browser storage
   useEffect(() => {
-    if (typeof window !== "undefined") {
-      localStorage.removeItem("luxury_wedding_dates_revealed");
+    const stored = typeof window !== "undefined" ? localStorage.getItem("luxury_wedding_dates_revealed") : null;
+    if (stored === "true") {
+      setDatesRevealed(true);
     }
 
-    // Listen for data resets or updates in Admin
     const handleUpdate = () => {
       if (typeof window !== "undefined") {
-        const stored = localStorage.getItem("luxury_wedding_dates_revealed");
-        setDatesRevealed(stored === "true");
+        const s = localStorage.getItem("luxury_wedding_dates_revealed");
+        setDatesRevealed(s === "true");
       }
     };
     window.addEventListener("wedding-data-updated", handleUpdate);
@@ -46,7 +51,8 @@ function InvitationContent() {
   useEffect(() => {
     const guest = searchParams.get("guest");
     if (guest) {
-      setGuestName(decodeURIComponent(guest));
+      const sanitized = decodeURIComponent(guest).replace(/[<>]/g, "");
+      setGuestName(sanitized || "Dear Valued Guest");
     }
   }, [searchParams]);
 
@@ -54,41 +60,60 @@ function InvitationContent() {
   useEffect(() => {
     if (!envelopeOpened) {
       document.body.style.overflow = "hidden";
-      document.body.style.height = "100vh";
+      document.body.style.position = "fixed";
+      document.body.style.width = "100%";
+      document.body.style.top = "0";
+      document.body.style.left = "0";
     } else {
       document.body.style.overflow = "";
-      document.body.style.height = "";
+      document.body.style.position = "";
+      document.body.style.width = "";
+      document.body.style.top = "";
+      document.body.style.left = "";
     }
     return () => {
       document.body.style.overflow = "";
-      document.body.style.height = "";
+      document.body.style.position = "";
+      document.body.style.width = "";
+      document.body.style.top = "";
+      document.body.style.left = "";
     };
   }, [envelopeOpened]);
 
-  // Handle envelope opening sequence
-  const handleOpenEnvelope = () => {
+  const handleOpenEnvelope = useCallback(() => {
     setEnvelopeOpened(true);
-    setIsPlayingMusic(true); // Soft music starts playing upon interaction
-  };
+    setIsPlayingMusic(true);
+  }, []);
 
-  const handleRevealDates = () => {
+  const handleRevealDates = useCallback(() => {
     setDatesRevealed(true);
     if (typeof window !== "undefined") {
       localStorage.setItem("luxury_wedding_dates_revealed", "true");
     }
-  };
+  }, []);
 
   if (!isLoaded) {
     return (
-      <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-navy text-gold">
-        <div className="w-10 h-10 border-2 border-gold border-t-transparent rounded-full animate-spin mb-4" />
-        <span className="font-playfair text-sm tracking-widest uppercase">Loading Invitation...</span>
+      <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-navy">
+        <div className="relative w-12 h-12 mb-6">
+          <div className="absolute inset-0 border-2 border-gold/30 rounded-full" />
+          <div className="absolute inset-0 border-2 border-gold border-t-transparent rounded-full animate-spin" />
+        </div>
+        <span className="font-playfair text-sm tracking-[0.3em] uppercase text-gold/80">Loading Invitation</span>
       </div>
     );
   }
 
   return (
     <div className="relative w-full min-h-screen bg-luxury-bg">
+      {/* Skip to content link */}
+      <a
+        href="#main-content"
+        className="fixed -top-10 left-4 z-[60] font-cormorant text-sm bg-gold text-navy px-4 py-2 rounded-b-lg shadow-card transition-all duration-300 focus:top-0 focus:outline-2 focus:outline-gold"
+      >
+        Skip to invitation
+      </a>
+
       {/* Background Audio Player */}
       <AudioPlayer
         url={data.bgMusicUrl}
@@ -102,9 +127,9 @@ function InvitationContent() {
       )}
 
       {/* Full Page Invitation Content */}
-      <div className={`transition-opacity duration-1000 ${envelopeOpened ? "opacity-100" : "opacity-0 pointer-events-none"}`}>
+      <div className={`transition-all duration-1000 ease-out ${envelopeOpened ? "opacity-100" : "opacity-0 pointer-events-none"}`}>
         {envelopeOpened && (
-          <>
+          <div id="main-content">
             {/* 1. Handwritten Invitation Letter & Greetings */}
             <InvitationLetter data={data} guestName={guestName} />
 
@@ -127,7 +152,7 @@ function InvitationContent() {
                   initial={{ opacity: 0, y: 40 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0 }}
-                  transition={{ duration: 1.0, ease: "easeOut" }}
+                  transition={{ duration: 0.8, ease: [0.25, 0.1, 0.25, 1] }}
                   className="w-full"
                 >
                   {/* 6. Event Details (Nikah / Walima Cards) */}
@@ -141,7 +166,7 @@ function InvitationContent() {
                 </motion.div>
               )}
             </AnimatePresence>
-          </>
+          </div>
         )}
       </div>
     </div>
@@ -152,9 +177,12 @@ export default function Home() {
   return (
     <Suspense
       fallback={
-        <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-navy text-gold">
-          <div className="w-10 h-10 border-2 border-gold border-t-transparent rounded-full animate-spin mb-4" />
-          <span className="font-playfair text-sm tracking-widest uppercase">Preparing Invitation...</span>
+        <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-navy">
+          <div className="relative w-12 h-12 mb-6">
+            <div className="absolute inset-0 border-2 border-gold/30 rounded-full" />
+            <div className="absolute inset-0 border-2 border-gold border-t-transparent rounded-full animate-spin" />
+          </div>
+          <span className="font-playfair text-sm tracking-[0.3em] uppercase text-gold/80">Preparing Invitation</span>
         </div>
       }
     >

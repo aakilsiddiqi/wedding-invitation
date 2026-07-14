@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Volume2, VolumeX } from "lucide-react";
+import { VolumeX } from "lucide-react";
 import { motion } from "framer-motion";
 
 interface AudioPlayerProps {
@@ -18,7 +18,7 @@ export default function AudioPlayer({ url, isPlayingGlobal, setIsPlayingGlobal }
     if (!audioRef.current) {
       audioRef.current = new Audio(url);
       audioRef.current.loop = true;
-      audioRef.current.volume = 0.4; // Soft background music
+      audioRef.current.volume = 0.4;
     }
 
     return () => {
@@ -29,14 +29,12 @@ export default function AudioPlayer({ url, isPlayingGlobal, setIsPlayingGlobal }
     };
   }, [url]);
 
-  // Sync internal state with global play state (e.g. triggered by envelope open)
   useEffect(() => {
     if (audioRef.current) {
       if (isPlayingGlobal) {
         audioRef.current.play().then(() => {
           setIsPlaying(true);
-        }).catch((err) => {
-          console.log("Autoplay prevented or paused:", err);
+        }).catch(() => {
           setIsPlaying(false);
           setIsPlayingGlobal(false);
         });
@@ -58,22 +56,19 @@ export default function AudioPlayer({ url, isPlayingGlobal, setIsPlayingGlobal }
       audioRef.current.play().then(() => {
         setIsPlaying(true);
         setIsPlayingGlobal(true);
-      }).catch((err) => {
-        console.error("Audio playback error:", err);
-      });
+      }).catch(() => {});
     }
   };
 
   return (
-    <div className="fixed bottom-6 right-6 z-50">
+    <div className="fixed bottom-6 right-6 z-50" style={{ bottom: "calc(1.5rem + env(safe-area-inset-bottom, 0px))", right: "calc(1.5rem + env(safe-area-inset-right, 0px))" }}>
       <motion.button
         onClick={togglePlay}
-        className="relative flex h-14 w-14 items-center justify-center rounded-full border border-gold/40 bg-navy/90 text-gold shadow-lg shadow-gold/10 backdrop-blur-md outline-none cursor-pointer"
+        className="relative flex h-14 w-14 items-center justify-center rounded-full border border-gold/40 bg-navy/90 text-gold shadow-elevated backdrop-blur-md outline-none cursor-pointer"
         whileHover={{ scale: 1.1, borderColor: "rgba(212,175,55,0.8)" }}
         whileTap={{ scale: 0.95 }}
-        aria-label="Toggle Background Music"
+        aria-label={isPlaying ? "Pause music" : "Play background music"}
       >
-        {/* Pulsing Outer Rings */}
         {isPlaying && (
           <>
             <span className="absolute -inset-1 animate-ping rounded-full border border-gold/30 opacity-75" />
@@ -81,18 +76,14 @@ export default function AudioPlayer({ url, isPlayingGlobal, setIsPlayingGlobal }
           </>
         )}
 
-        {/* Animated waveform bars or icons */}
         <div className="flex items-center justify-center gap-[3px]">
           {isPlaying ? (
-            // Waveform visualizer
             <div className="flex h-5 items-end gap-[3px]">
               {[0.4, 0.8, 0.6, 0.9, 0.5].map((delay, index) => (
                 <motion.span
                   key={index}
                   className="w-[2.5px] rounded-full bg-gold"
-                  animate={{
-                    height: ["4px", "18px", "4px"],
-                  }}
+                  animate={{ height: ["4px", "18px", "4px"] }}
                   transition={{
                     duration: 0.8,
                     repeat: Infinity,
