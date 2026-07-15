@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Confetti from "react-confetti";
 import { Sparkles } from "lucide-react";
+import { easeOutExpo, fadeInUp, staggerContainer } from "@/src/utils/constants";
 import { WeddingData } from "../utils/weddingStore";
 
 interface ScratchCardProps {
@@ -18,8 +19,8 @@ export default function ScratchCard({ data, onReveal }: ScratchCardProps) {
   const [windowDimensions, setWindowDimensions] = useState({ width: 0, height: 0 });
   const [isDrawing, setIsDrawing] = useState(false);
   const hasInitializedRef = useRef(false);
+  const lastCheckRef = useRef(0);
 
-  // Sync window size for Confetti component
   useEffect(() => {
     if (typeof window !== "undefined") {
       setWindowDimensions({
@@ -45,7 +46,6 @@ export default function ScratchCard({ data, onReveal }: ScratchCardProps) {
 
     ctx.clearRect(0, 0, width, height);
 
-    // Draw luxury gold gradient foil
     const grad = ctx.createLinearGradient(0, 0, width, height);
     grad.addColorStop(0, "#AA7C11");
     grad.addColorStop(0.3, "#D4AF37");
@@ -56,7 +56,6 @@ export default function ScratchCard({ data, onReveal }: ScratchCardProps) {
     ctx.fillStyle = grad;
     ctx.fillRect(0, 0, width, height);
 
-    // Add noise texture to make it look like a physical card
     ctx.globalAlpha = 0.05;
     for (let i = 0; i < width; i += 4) {
       for (let j = 0; j < height; j += 4) {
@@ -71,34 +70,27 @@ export default function ScratchCard({ data, onReveal }: ScratchCardProps) {
     }
     ctx.globalAlpha = 1.0;
 
-    // Draw ornamental border
     ctx.strokeStyle = "#AA7C11";
     ctx.lineWidth = 2;
     ctx.strokeRect(10, 10, width - 20, height - 20);
-
     ctx.strokeStyle = "#FFF8E7";
     ctx.lineWidth = 1;
     ctx.strokeRect(14, 14, width - 28, height - 28);
 
-    // Draw central text helper
-    ctx.fillStyle = "#0F172A"; // Navy text
-    ctx.font = 'bold 20px "Playfair Display", serif';
+    ctx.fillStyle = "#1A1A2E";
+    ctx.font = 'bold 20px "Cormorant Garamond", serif';
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
-
-    // Text background shadow
     ctx.shadowColor = "rgba(212, 175, 55, 0.4)";
     ctx.shadowBlur = 4;
-    
-    // Draw Text
+
     ctx.fillText("SCRATCH CARD", width / 2, height / 2 - 15);
-    
-    ctx.font = 'italic 13px "Cormorant Garamond", serif';
-    ctx.fillStyle = "#1E293B";
+
+    ctx.font = 'italic 13px "Inter", sans-serif';
+    ctx.fillStyle = "#2D2D44";
     ctx.fillText("To Reveal Wedding Dates", width / 2, height / 2 + 15);
   };
 
-  // Initialize Canvas layout and handle responsive sizing with ResizeObserver
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -107,7 +99,7 @@ export default function ScratchCard({ data, onReveal }: ScratchCardProps) {
       for (let entry of entries) {
         const width = canvas.clientWidth;
         const height = canvas.clientHeight;
-        
+
         if (width > 0 && height > 0 && !hasInitializedRef.current) {
           canvas.width = width;
           canvas.height = height;
@@ -123,18 +115,14 @@ export default function ScratchCard({ data, onReveal }: ScratchCardProps) {
     };
   }, []);
 
-
-
   const getCoordinates = (e: any) => {
     const canvas = canvasRef.current;
     if (!canvas) return { x: 0, y: 0 };
     const rect = canvas.getBoundingClientRect();
-    
-    // Check if touch event or mouse event
+
     const clientX = e.touches ? e.touches[0].clientX : e.clientX;
     const clientY = e.touches ? e.touches[0].clientY : e.clientY;
 
-    // Scale coordinates to fit drawing buffer dimensions 1:1
     const scaleX = canvas.width / rect.width;
     const scaleY = canvas.height / rect.height;
 
@@ -143,8 +131,6 @@ export default function ScratchCard({ data, onReveal }: ScratchCardProps) {
       y: (clientY - rect.top) * scaleY,
     };
   };
-
-  const lastCheckRef = useRef(0);
 
   const draw = (x: number, y: number) => {
     const canvas = canvasRef.current;
@@ -172,9 +158,7 @@ export default function ScratchCard({ data, onReveal }: ScratchCardProps) {
 
   const handleMove = (e: any) => {
     if (!isDrawing) return;
-    if (e.cancelable) {
-      e.preventDefault();
-    }
+    if (e.cancelable) e.preventDefault();
     const { x, y } = getCoordinates(e);
     draw(x, y);
   };
@@ -186,12 +170,8 @@ export default function ScratchCard({ data, onReveal }: ScratchCardProps) {
   const handleKeyboardReveal = () => {
     setIsScratchedFully(true);
     setShowConfetti(true);
-    if (onReveal) {
-      onReveal();
-    }
-    setTimeout(() => {
-      setShowConfetti(false);
-    }, 6000);
+    if (onReveal) onReveal();
+    setTimeout(() => setShowConfetti(false), 6000);
   };
 
   const checkScratchPercentage = () => {
@@ -207,30 +187,21 @@ export default function ScratchCard({ data, onReveal }: ScratchCardProps) {
     let transparentCount = 0;
 
     for (let i = 3; i < pixels.length; i += 16) {
-      if (pixels[i] === 0) {
-        transparentCount++;
-      }
+      if (pixels[i] === 0) transparentCount++;
     }
 
-    const totalSampledPixels = pixels.length / 16;
-    const percentage = transparentCount / totalSampledPixels;
+    const percentage = transparentCount / (pixels.length / 16);
 
     if (percentage > 0.4) {
       setIsScratchedFully(true);
       setShowConfetti(true);
-      
-      if (onReveal) {
-        onReveal();
-      }
-      
-      setTimeout(() => {
-        setShowConfetti(false);
-      }, 6000);
+      if (onReveal) onReveal();
+      setTimeout(() => setShowConfetti(false), 6000);
     }
   };
 
   return (
-    <section className="relative py-24 bg-luxury-bg overflow-hidden flex flex-col items-center justify-center">
+    <section className="relative py-24 bg-ivory overflow-hidden flex flex-col items-center justify-center">
       {showConfetti && (
         <Confetti
           width={windowDimensions.width}
@@ -241,64 +212,50 @@ export default function ScratchCard({ data, onReveal }: ScratchCardProps) {
         />
       )}
 
-      {/* Islamic Background Accents */}
-      <div className="absolute inset-0 islamic-pattern opacity-10" />
+      <div className="absolute inset-0 islamic-pattern opacity-[0.06]" />
 
       <div className="max-w-md w-full px-6 z-10 flex flex-col items-center">
-        {/* Title */}
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.8 }}
+          variants={fadeInUp}
           className="text-center mb-8"
         >
-          <span className="text-xs uppercase tracking-[0.25em] text-gold font-cormorant flex items-center justify-center gap-1.5">
-            <Sparkles className="h-3 w-3 text-gold animate-pulse" /> Interactive reveal
+          <span className="text-xs uppercase tracking-[0.25em] text-muted font-inter flex items-center justify-center gap-1.5">
+            <Sparkles className="h-3 w-3 text-gold" /> Interactive reveal
           </span>
-          <h2 className="font-playfair text-2xl sm:text-3xl font-light text-navy tracking-wide mt-2">
+          <h2 className="font-cormorant text-2xl sm:text-3xl font-semibold text-elegant tracking-wide mt-2">
             Reveal Wedding Dates
           </h2>
         </motion.div>
 
-        {/* Scratch Card Outer Wrapper */}
-        <div
-          className="relative w-full aspect-[4/3] rounded-2xl shadow-elevated overflow-hidden border border-gold/30 bg-cream"
-        >
-          {/* UNDERNEATH CONTENT (The revealed date information) */}
-          <div className="absolute inset-0 flex flex-col items-center justify-center p-6 text-center text-navy select-none">
-            {/* Paper textured card background */}
+        <div className="relative w-full aspect-[4/3] rounded-2xl shadow-elevated overflow-hidden border border-champagne/30 bg-ivory-dark">
+          <div className="absolute inset-0 flex flex-col items-center justify-center p-6 text-center text-elegant select-none">
             <div className="absolute inset-0 paper-texture pointer-events-none" />
-            <div className="absolute inset-2.5 border border-gold/25 rounded-xl pointer-events-none" />
+            <div className="absolute inset-2.5 border border-champagne/25 rounded-xl pointer-events-none" />
 
             <div className="relative z-10 flex flex-col items-center justify-center h-full w-full">
-              <span className="text-[10px] tracking-[0.3em] text-gold uppercase mb-1">In The Name Of Allah</span>
-              <p className="font-playfair text-xs italic text-navy/70 mb-4">We Invite You to Celebrate</p>
-              
-              {/* Event Dates Grid */}
+              <span className="text-[10px] tracking-[0.3em] text-champagne uppercase mb-1">In The Name Of Allah</span>
+              <p className="font-cormorant text-xs italic text-elegant/70 mb-4">We Invite You to Celebrate</p>
+
               <div className="grid grid-cols-2 gap-4 w-full text-center">
-                {/* Nikah */}
-                <div className="border-r border-gold/20 pr-2">
-                  <span className="font-playfair font-bold text-sm tracking-widest text-gold uppercase">Nikah</span>
-                  <p className="font-playfair text-base font-bold text-navy mt-1 leading-tight">{data.nikahDate}</p>
-                  <p className="text-[11px] font-cormorant text-navy/70 mt-1">{data.nikahTime}</p>
+                <div className="border-r border-champagne/20 pr-2">
+                  <span className="font-cormorant font-bold text-sm tracking-widest text-gold uppercase">Nikah</span>
+                  <p className="font-cormorant text-base font-bold text-elegant mt-1 leading-tight">{data.nikahDate}</p>
+                  <p className="text-[11px] font-inter text-elegant/70 mt-1">{data.nikahTime}</p>
                 </div>
-                {/* Walima */}
                 <div className="pl-2">
-                  <span className="font-playfair font-bold text-sm tracking-widest text-gold uppercase">Walima</span>
-                  <p className="font-playfair text-base font-bold text-navy mt-1 leading-tight">{data.walimaDate}</p>
-                  <p className="text-[11px] font-cormorant text-navy/70 mt-1">{data.walimaTime}</p>
+                  <span className="font-cormorant font-bold text-sm tracking-widest text-gold uppercase">Walima</span>
+                  <p className="font-cormorant text-base font-bold text-elegant mt-1 leading-tight">{data.walimaDate}</p>
+                  <p className="text-[11px] font-inter text-elegant/70 mt-1">{data.walimaTime}</p>
                 </div>
               </div>
-              
-              <div className="h-[1px] w-24 bg-gold/20 my-4" />
-              <p className="font-cormorant text-[11px] uppercase tracking-[0.2em] text-navy/60">
+
+              <div className="h-px w-24 bg-champagne/20 my-4" />
+              <p className="font-inter text-[11px] uppercase tracking-[0.2em] text-elegant/60">
                 {data.venueName}
               </p>
             </div>
           </div>
 
-          {/* OVERLAY CANVAS (The scratchable gold layer) */}
           <AnimatePresence>
             {!isScratchedFully && (
               <motion.canvas
@@ -318,7 +275,6 @@ export default function ScratchCard({ data, onReveal }: ScratchCardProps) {
           </AnimatePresence>
         </div>
 
-        {/* Keyboard accessible reveal button */}
         <AnimatePresence>
           {!isScratchedFully && (
             <motion.button
@@ -326,7 +282,7 @@ export default function ScratchCard({ data, onReveal }: ScratchCardProps) {
               onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleKeyboardReveal(); } }}
               tabIndex={0}
               aria-label="Reveal wedding dates"
-              className="mt-6 px-6 py-3 rounded-full border border-gold/30 bg-gold-gradient text-navy font-playfair font-semibold text-xs tracking-wider uppercase shadow-gold hover:shadow-gold-lg transition-all"
+              className="mt-6 px-6 py-3 rounded-full bg-gold-gradient text-elegant font-cormorant font-semibold text-xs tracking-wider uppercase shadow-gold hover:shadow-gold-lg transition-all"
               initial={{ opacity: 0, y: 10 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
@@ -336,14 +292,13 @@ export default function ScratchCard({ data, onReveal }: ScratchCardProps) {
           )}
         </AnimatePresence>
 
-        {/* Celebration text beneath */}
         <AnimatePresence>
           {isScratchedFully && (
             <motion.p
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, ease: [0.19, 1, 0.22, 1] }}
-              className="text-xs uppercase font-playfair tracking-[0.25em] text-gold mt-6 text-center"
+              transition={{ duration: 0.5, ease: easeOutExpo }}
+              className="text-xs uppercase font-cormorant tracking-[0.25em] text-gold mt-6 text-center"
             >
               Alhamdulillah! You revealed the dates.
             </motion.p>
