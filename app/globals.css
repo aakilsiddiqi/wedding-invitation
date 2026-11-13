@@ -2,28 +2,39 @@
 
 
 @theme {
+  --color-ivory: #FDF8F4;
+  --color-ivory-dark: #F5EDE4;
+  --color-champagne: #E8D5B7;
+  --color-champagne-light: #F5ECD6;
   --color-gold: #D4AF37;
   --color-gold-light: #F3E5AB;
   --color-gold-dark: #AA7C11;
   --color-cream: #FFF8E7;
+  --color-elegant: #1A1A2E;
+  --color-elegant-light: #2D2D44;
+  --color-muted: #8B7E74;
+  --color-muted-brown: #6B5E56;
+  --color-warm-white: #FEFCF9;
   --color-navy: #0F172A;
   --color-navy-light: #1E293B;
   --color-luxury-bg: #FDFCF8;
   
-  --font-playfair: "Playfair Display", serif;
+  --font-inter: "Inter", sans-serif;
   --font-cormorant: "Cormorant Garamond", serif;
+  --font-playfair: "Playfair Display", serif;
   --font-urdu: "Noto Nastaliq Urdu", serif;
 
   --shadow-soft: 0 1px 3px rgba(0,0,0,0.05), 0 1px 2px rgba(0,0,0,0.1);
   --shadow-card: 0 2px 15px -3px rgba(0,0,0,0.07), 0 10px 20px -2px rgba(0,0,0,0.04);
-  --shadow-elevated: 0 10px 40px -10px rgba(0,0,0,0.1), 0 2px 10px -2px rgba(0,0,0,0.05);
+  --shadow-elevated: 0 10px 40px -10px rgba(0,0,0,0.08), 0 2px 10px -2px rgba(0,0,0,0.04);
   --shadow-gold: 0 4px 20px rgba(212,175,55,0.15);
   --shadow-gold-lg: 0 8px 40px rgba(212,175,55,0.2);
+  --shadow-warm: 0 4px 24px rgba(139,126,116,0.12);
 }
 
 :root {
-  --background: #FDFCF8;
-  --foreground: #0F172A;
+  --background: #FDF8F4;
+  --foreground: #1A1A2E;
   --text-display: clamp(2.5rem, 6vw, 4.5rem);
   --text-headline: clamp(1.75rem, 4vw, 3rem);
   --text-title: clamp(1.25rem, 3vw, 2rem);
@@ -34,7 +45,7 @@
 body {
   background-color: var(--background);
   color: var(--foreground);
-  font-family: var(--font-cormorant);
+  font-family: var(--font-inter), system-ui, sans-serif;
   overflow-x: hidden;
 }
 
@@ -63,7 +74,7 @@ body {
 
 /* Custom Utilities */
 
-/* Luxury Gold Text Gradient — WCAG AA compliant on cream */
+/* Luxury Gold Text Gradient — WCAG AA compliant on ivory */
 .text-gold-gradient {
   background: linear-gradient(135deg, #8B6914 0%, #B8941F 50%, #D4AF37 80%, #B8941F 100%);
   -webkit-background-clip: text;
@@ -87,14 +98,14 @@ body {
 
 /* Glassmorphism */
 .glass {
-  background: rgba(255, 248, 231, 0.08);
+  background: rgba(253, 248, 244, 0.08);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
   border: 1px solid rgba(212, 175, 55, 0.1);
 }
 
 .glass-dark {
-  background: rgba(15, 23, 42, 0.6);
+  background: rgba(26, 26, 46, 0.6);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
   border: 1px solid rgba(212, 175, 55, 0.15);
@@ -102,11 +113,11 @@ body {
 
 /* Parchment / Luxury Paper Texture */
 .paper-texture {
-  background-color: #FDFCF8;
+  background-color: #FDF8F4;
   background-image: 
-    radial-gradient(circle at 50% 50%, rgba(253, 252, 248, 0.4) 0%, rgba(243, 229, 171, 0.05) 100%),
+    radial-gradient(circle at 50% 50%, rgba(253, 248, 244, 0.4) 0%, rgba(232, 213, 183, 0.06) 100%),
     url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 100 100'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='matrix' values='0 0 0 0 0.83 0 0 0 0 0.75 0 0 0 0 0.58 0 0 0 0.07 0'/%3E%3C/filter%3E%3Crect width='100' height='100' filter='url(%23noise)' opacity='0.5'/%3E%3C/svg%3E");
-  box-shadow: inset 0 0 60px rgba(170, 124, 17, 0.05);
+  box-shadow: inset 0 0 60px rgba(170, 124, 17, 0.04);
 }
 
 /* Islamic Geometric Pattern Background */
@@ -152,6 +163,13 @@ body {
 @keyframes letter-rise {
   from { transform: translateY(100px); opacity: 0; }
   to { transform: translateY(0); opacity: 1; }
+}
+
+/* Scale text for headings */
+.font-heading {
+  font-family: var(--font-cormorant), serif;
+  font-weight: 600;
+  letter-spacing: 0.02em;
 }
 
 /* Section entrance animations */

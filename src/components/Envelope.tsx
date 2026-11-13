@@ -3,13 +3,12 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ChevronDown } from "lucide-react";
+import { easeOutExpo } from "@/src/utils/constants";
 
 interface EnvelopeProps {
   onOpen: () => void;
   guestName: string;
 }
-
-const easeOutExpo: [number, number, number, number] = [0.19, 1, 0.22, 1];
 
 export default function Envelope({ onOpen, guestName }: EnvelopeProps) {
   const [isOpen, setIsOpen] = useState(false);
@@ -19,7 +18,6 @@ export default function Envelope({ onOpen, guestName }: EnvelopeProps) {
   const animationIdRef = useRef<number>(0);
   const isCleanedUp = useRef(false);
 
-  // Background particle context & rose petal rainfall setup
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -147,15 +145,10 @@ export default function Envelope({ onOpen, guestName }: EnvelopeProps) {
     setIsOpen(true);
     window.dispatchEvent(new Event("start-rose-rain"));
 
-    setTimeout(() => {
-      setBringCardToFront(true);
-    }, 800);
-
+    setTimeout(() => setBringCardToFront(true), 800);
     setTimeout(() => {
       setIsOpenedFully(true);
-      setTimeout(() => {
-        onOpen();
-      }, 800);
+      setTimeout(() => onOpen(), 800);
     }, 1800);
   }, [isOpen, onOpen]);
 
@@ -167,22 +160,19 @@ export default function Envelope({ onOpen, guestName }: EnvelopeProps) {
   }, [handleOpenEnvelope]);
 
   return (
-    <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-navy text-cream overflow-hidden">
-      {/* Dynamic Background Canvas */}
+    <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-elegant text-warm-white overflow-hidden">
       <canvas ref={canvasRef} className="absolute inset-0 pointer-events-none" />
 
-      {/* Islamic Border Pattern Overlay */}
-      <div className="absolute inset-4 border border-gold/15 pointer-events-none rounded-lg islamic-pattern opacity-30" />
-      <div className="absolute inset-6 border border-gold/30 pointer-events-none rounded-lg" />
-      
-      {/* Top Corners Decorative SVGs */}
-      <div className="absolute top-8 left-8 w-12 h-12 text-gold opacity-40 pointer-events-none">
+      <div className="absolute inset-4 border border-champagne/15 pointer-events-none rounded-lg islamic-pattern opacity-30" />
+      <div className="absolute inset-6 border border-champagne/30 pointer-events-none rounded-lg" />
+
+      <div className="absolute top-8 left-8 w-12 h-12 text-champagne opacity-40 pointer-events-none">
         <svg viewBox="0 0 100 100" fill="currentColor">
           <path d="M0 0 h 60 v 4 H 4 v 56 H 0 Z" />
           <path d="M10 10 h 40 v 2 H 12 v 38 H 10 Z" />
         </svg>
       </div>
-      <div className="absolute top-8 right-8 w-12 h-12 text-gold opacity-40 pointer-events-none rotate-90">
+      <div className="absolute top-8 right-8 w-12 h-12 text-champagne opacity-40 pointer-events-none rotate-90">
         <svg viewBox="0 0 100 100" fill="currentColor">
           <path d="M0 0 h 60 v 4 H 4 v 56 H 0 Z" />
           <path d="M10 10 h 40 v 2 H 12 v 38 H 10 Z" />
@@ -196,12 +186,11 @@ export default function Envelope({ onOpen, guestName }: EnvelopeProps) {
             exit={{ opacity: 0, scale: 0.95 }}
             transition={{ duration: 0.8, ease: easeOutExpo }}
           >
-            {/* Header Text */}
             <motion.p
               initial={{ opacity: 0, y: -20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.3, duration: 1, ease: easeOutExpo }}
-              className="font-playfair text-lg sm:text-xl tracking-[0.2em] text-gold uppercase mb-2"
+              className="font-cormorant text-lg sm:text-xl tracking-[0.2em] text-gold uppercase mb-2"
             >
               بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ
             </motion.p>
@@ -209,7 +198,7 @@ export default function Envelope({ onOpen, guestName }: EnvelopeProps) {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.7, duration: 1, ease: easeOutExpo }}
-              className="text-xs sm:text-sm tracking-[0.3em] font-cormorant text-gold/60 uppercase mb-8"
+              className="text-xs sm:text-sm tracking-[0.3em] font-inter text-champagne/60 uppercase mb-8"
             >
               Bismillahir Rahmanir Rahim
             </motion.p>
@@ -218,23 +207,20 @@ export default function Envelope({ onOpen, guestName }: EnvelopeProps) {
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ delay: 0.9, duration: 1.2, ease: easeOutExpo }}
-              className="font-playfair text-[clamp(1.75rem,5vw,3rem)] sm:text-5xl font-light tracking-[0.1em] text-gold-gradient uppercase mb-12"
+              className="font-cormorant text-[clamp(1.75rem,5vw,3rem)] sm:text-5xl font-semibold tracking-[0.1em] text-gold-gradient uppercase mb-12"
             >
               You Are Invited
             </motion.h1>
 
-            {/* 3D Envelope container */}
             <div className="relative w-[clamp(280px,70vw,460px)] h-[clamp(180px,45vw,300px)] mt-2 mb-12 perspective-[1000px]">
-              {/* Back flap (interior of the envelope) */}
-              <div className="absolute inset-0 bg-gold-dark rounded-lg shadow-2xl overflow-hidden border border-gold/30">
-                <div className="absolute inset-0 bg-navy opacity-95 flex items-center justify-center">
+              <div className="absolute inset-0 bg-gold-dark rounded-lg shadow-2xl overflow-hidden border border-champagne/30">
+                <div className="absolute inset-0 bg-elegant opacity-95 flex items-center justify-center">
                   <div className="w-full h-full islamic-pattern opacity-25" />
                 </div>
               </div>
 
-              {/* The Letter Card inside */}
               <motion.div
-                className="absolute inset-x-4 top-2 bottom-2 bg-cream rounded-md p-4 text-navy flex flex-col justify-center items-center shadow-elevated border border-gold/30"
+                className="absolute inset-x-4 top-2 bottom-2 bg-ivory rounded-md p-4 text-elegant flex flex-col justify-center items-center shadow-elevated border border-champagne/30"
                 style={{ zIndex: bringCardToFront ? 20 : 0 }}
                 initial={{ y: 0, opacity: 0.8, scale: 0.95 }}
                 animate={isOpen ? { y: -180, opacity: 1, scale: 1.08 } : { y: 0, opacity: 0.8, scale: 0.95 }}
@@ -244,55 +230,52 @@ export default function Envelope({ onOpen, guestName }: EnvelopeProps) {
                   scale: { delay: 0.8, duration: 1.2, ease: easeOutExpo },
                 }}
               >
-                <div className="border border-gold/20 w-full h-full rounded p-3 flex flex-col justify-between items-center text-center">
-                  <span className="text-[10px] tracking-[0.3em] uppercase text-gold">Wedding Invitation</span>
+                <div className="border border-champagne/20 w-full h-full rounded p-3 flex flex-col justify-between items-center text-center">
+                  <span className="text-[10px] tracking-[0.3em] uppercase text-gold font-inter">Wedding Invitation</span>
                   <div className="my-2">
-                    <p className="font-playfair text-sm italic text-navy/80">Save the Date for</p>
-                    <p className="font-playfair text-xl sm:text-2xl font-bold tracking-wide text-gold-gradient mt-1">Ayesha & Zayd</p>
+                    <p className="font-cormorant text-sm italic text-elegant/80">Save the Date for</p>
+                    <p className="font-cormorant text-xl sm:text-2xl font-bold tracking-wide text-gold-gradient mt-1">Ayesha & Zayd</p>
                   </div>
-                  <div className="h-[1px] w-12 bg-gold/30" />
-                  <p className="text-[11px] font-playfair tracking-widest text-navy/60 uppercase">Honor of Your Presence Is Requested</p>
+                  <div className="h-px w-12 bg-champagne/30" />
+                  <p className="text-[11px] font-inter tracking-widest text-elegant/60 uppercase">Honor of Your Presence Is Requested</p>
                 </div>
               </motion.div>
 
-              {/* Bottom and Side Flaps */}
               <div className="absolute inset-0 pointer-events-none z-10">
-                <div 
-                  className="absolute left-0 bottom-0 top-0 w-1/2 bg-navy border-l border-gold/20 shadow-md"
+                <div
+                  className="absolute left-0 bottom-0 top-0 w-1/2 bg-elegant border-l border-champagne/20 shadow-md"
                   style={{
                     clipPath: "polygon(0% 0%, 100% 50%, 0% 100%)",
-                    background: "linear-gradient(to right, #0F172A, #1E293B)",
+                    background: "linear-gradient(to right, #1A1A2E, #2D2D44)",
                   }}
                 />
-                <div 
-                  className="absolute right-0 bottom-0 top-0 w-1/2 bg-navy border-r border-gold/20 shadow-md"
+                <div
+                  className="absolute right-0 bottom-0 top-0 w-1/2 bg-elegant border-r border-champagne/20 shadow-md"
                   style={{
                     clipPath: "polygon(100% 0%, 0% 50%, 100% 100%)",
-                    background: "linear-gradient(to left, #0F172A, #1E293B)",
+                    background: "linear-gradient(to left, #1A1A2E, #2D2D44)",
                   }}
                 />
-                <div 
-                  className="absolute left-0 right-0 bottom-0 h-1/2 bg-navy border-b border-gold/20 shadow-lg"
+                <div
+                  className="absolute left-0 right-0 bottom-0 h-1/2 bg-elegant border-b border-champagne/20 shadow-lg"
                   style={{
                     clipPath: "polygon(0% 100%, 50% 0%, 100% 100%)",
-                    background: "linear-gradient(to top, #0A0F1D, #0F172A)",
+                    background: "linear-gradient(to top, #12121F, #1A1A2E)",
                   }}
                 />
               </div>
 
-              {/* Top Flap */}
               <motion.div
-                className="absolute left-0 right-0 top-0 h-1/2 bg-navy border-t border-gold/20 z-30"
+                className="absolute left-0 right-0 top-0 h-1/2 bg-elegant border-t border-champagne/20 z-30"
                 style={{
                   clipPath: "polygon(0% 0%, 50% 100%, 100% 0%)",
-                  background: "linear-gradient(to bottom, #0F172A, #1E293B)",
+                  background: "linear-gradient(to bottom, #1A1A2E, #2D2D44)",
                   originY: 0,
                 }}
                 animate={isOpen ? { rotateX: -180, zIndex: 5 } : { rotateX: 0 }}
                 transition={{ duration: 0.8, ease: easeOutExpo }}
               />
 
-              {/* Top Seal Wrapper */}
               <motion.div
                 className="absolute left-0 right-0 top-0 h-1/2 pointer-events-none z-30"
                 style={{ originY: 0, perspective: "1000px" }}
@@ -300,7 +283,7 @@ export default function Envelope({ onOpen, guestName }: EnvelopeProps) {
                 transition={{ duration: 0.8, ease: easeOutExpo }}
               >
                 {isOpen && (
-                  <div 
+                  <div
                     className="absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-1/2 w-16 h-16 sm:w-20 sm:h-20"
                     style={{ clipPath: "inset(0% 0% 50% 0%)" }}
                   >
@@ -323,7 +306,6 @@ export default function Envelope({ onOpen, guestName }: EnvelopeProps) {
                 )}
               </motion.div>
 
-              {/* Bottom Half of Wax Seal */}
               {isOpen && (
                 <motion.div
                   className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-20 w-16 h-16 sm:w-20 sm:h-20 pointer-events-none"
@@ -350,7 +332,6 @@ export default function Envelope({ onOpen, guestName }: EnvelopeProps) {
                 </motion.div>
               )}
 
-              {/* Wax Seal Button */}
               <AnimatePresence>
                 {!isOpen && (
                   <motion.button
@@ -365,7 +346,7 @@ export default function Envelope({ onOpen, guestName }: EnvelopeProps) {
                     exit={{ opacity: 0, scale: 0.9, transition: { duration: 0.2 } }}
                   >
                     <span className="absolute inset-0 rounded-full bg-gold/20 animate-ping opacity-60" />
-                    
+
                     <svg className="w-full h-full drop-shadow-lg text-gold-gradient fill-current" viewBox="0 0 100 100">
                       <defs>
                         <radialGradient id="wax-grad" cx="50%" cy="50%" r="50%">
@@ -386,26 +367,25 @@ export default function Envelope({ onOpen, guestName }: EnvelopeProps) {
               </AnimatePresence>
             </div>
 
-            {/* Guest Welcome & Click Instructions */}
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 1.2, duration: 1, ease: easeOutExpo }}
               className="flex flex-col items-center"
             >
-              <p className="font-cormorant text-base sm:text-lg tracking-widest text-cream/70 uppercase">
+              <p className="font-inter text-base sm:text-lg tracking-widest text-champagne/70 uppercase">
                 Welcome
               </p>
-              <h2 className="font-playfair text-xl sm:text-2xl font-semibold text-gold mt-1 mb-8">
+              <h2 className="font-cormorant text-xl sm:text-2xl font-semibold text-gold mt-1 mb-8">
                 {guestName}
               </h2>
-              
+
               <motion.div
                 animate={{ y: [0, 8, 0] }}
                 transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
                 className="flex flex-col items-center gap-1 opacity-50"
               >
-                <span className="text-[10px] sm:text-xs uppercase tracking-[0.2em]">Click seal to open</span>
+                <span className="text-[10px] sm:text-xs uppercase tracking-[0.2em] font-inter">Click seal to open</span>
                 <ChevronDown className="h-4 w-4 text-gold" />
               </motion.div>
             </motion.div>

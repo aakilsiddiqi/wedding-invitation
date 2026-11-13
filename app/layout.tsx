@@ -1,10 +1,10 @@
 import type { Metadata, Viewport } from "next";
-import { Playfair_Display, Cormorant_Garamond, Noto_Nastaliq_Urdu } from "next/font/google";
+import { Inter, Cormorant_Garamond, Playfair_Display, Noto_Nastaliq_Urdu } from "next/font/google";
 import "./globals.css";
 
-const playfair = Playfair_Display({
+const inter = Inter({
   subsets: ["latin"],
-  variable: "--font-playfair",
+  variable: "--font-inter",
   display: "swap",
 });
 
@@ -12,6 +12,12 @@ const cormorant = Cormorant_Garamond({
   subsets: ["latin"],
   weight: ["300", "400", "500", "600", "700"],
   variable: "--font-cormorant",
+  display: "swap",
+});
+
+const playfair = Playfair_Display({
+  subsets: ["latin"],
+  variable: "--font-playfair",
   display: "swap",
 });
 
@@ -54,8 +60,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${playfair.variable} ${cormorant.variable} ${notoNastaliq.variable} h-full scroll-smooth antialiased`}>
-      <body className="min-h-full flex flex-col bg-luxury-bg text-navy selection:bg-gold-light selection:text-navy-light">
+    <html lang="en" className={`${inter.variable} ${cormorant.variable} ${playfair.variable} ${notoNastaliq.variable} h-full scroll-smooth antialiased`}>
+      <body className="min-h-full flex flex-col bg-ivory text-elegant selection:bg-champagne/30 selection:text-elegant">
         {children}
       </body>
     </html>
