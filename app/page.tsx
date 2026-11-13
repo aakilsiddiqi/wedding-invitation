@@ -21,26 +21,8 @@ function InvitationContent() {
   const [envelopeOpened, setEnvelopeOpened] = useState(false);
   const [isPlayingMusic, setIsPlayingMusic] = useState(false);
   const [guestName, setGuestName] = useState("Dear Valued Guest");
+  // memory only: every reload must start with the card covered again
   const [datesRevealed, setDatesRevealed] = useState(false);
-
-  // Sync datesRevealed state with browser storage
-  useEffect(() => {
-    const stored = typeof window !== "undefined" ? localStorage.getItem("luxury_wedding_dates_revealed") : null;
-    if (stored === "true") {
-      setDatesRevealed(true);
-    }
-
-    const handleUpdate = () => {
-      if (typeof window !== "undefined") {
-        const s = localStorage.getItem("luxury_wedding_dates_revealed");
-        setDatesRevealed(s === "true");
-      }
-    };
-    window.addEventListener("wedding-data-updated", handleUpdate);
-    return () => {
-      window.removeEventListener("wedding-data-updated", handleUpdate);
-    };
-  }, []);
 
   // Read guest query parameter safely on mount
   useEffect(() => {
@@ -82,9 +64,6 @@ function InvitationContent() {
 
   const handleRevealDates = useCallback(() => {
     setDatesRevealed(true);
-    if (typeof window !== "undefined") {
-      localStorage.setItem("luxury_wedding_dates_revealed", "true");
-    }
   }, []);
 
   if (!isLoaded) {
@@ -138,7 +117,7 @@ function InvitationContent() {
             <Countdown targetDate={data.countdownDate} />
 
             {/* 5. Scratch to Reveal Event Dates */}
-            <ScratchCard data={data} onReveal={handleRevealDates} />
+            <ScratchCard data={data} revealed={datesRevealed} onReveal={handleRevealDates} />
 
             {/* Gated Sections: Revealed only after dates are scratched */}
             <AnimatePresence>

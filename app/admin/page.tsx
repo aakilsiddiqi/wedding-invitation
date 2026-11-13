@@ -5,6 +5,30 @@ import { ArrowLeft, Save, RefreshCw, Download, Sparkles } from "lucide-react";
 import Link from "next/link";
 import { useState, useEffect } from "react";
 
+const venueFieldGroups: {
+  title: string;
+  fields: { name: keyof WeddingData; label: string; rows?: number }[];
+}[] = [
+  {
+    title: "Nikah Venue",
+    fields: [
+      { name: "nikahVenueName", label: "Venue Name" },
+      { name: "nikahVenueAddress", label: "Venue Address", rows: 2 },
+      { name: "nikahMapLink", label: "Google Maps URL" },
+      { name: "nikahMapEmbed", label: "Google Maps Embed SRC", rows: 3 },
+    ],
+  },
+  {
+    title: "Walima Venue",
+    fields: [
+      { name: "walimaVenueName", label: "Venue Name" },
+      { name: "walimaVenueAddress", label: "Venue Address", rows: 2 },
+      { name: "walimaMapLink", label: "Google Maps URL" },
+      { name: "walimaMapEmbed", label: "Google Maps Embed SRC", rows: 3 },
+    ],
+  },
+];
+
 export default function AdminPage() {
   const { data, isLoaded, updateData, resetData } = useWeddingStore();
   const [form, setForm] = useState<WeddingData | null>(null);
@@ -152,25 +176,22 @@ export default function AdminPage() {
           </div>
 
           <div className="bg-white border border-champagne/20 rounded-3xl p-6 sm:p-8 shadow-warm space-y-6">
-            <h2 className="font-cormorant text-lg font-bold text-gold border-b border-champagne/10 pb-2">3. Venue & Location</h2>
-            <div className="space-y-6">
-              <div>
-                <label className="block text-xs uppercase tracking-wider font-inter text-muted font-semibold mb-2">Venue Name</label>
-                <input type="text" name="venueName" value={form.venueName} onChange={handleChange} required className={inputClass} />
+            <h2 className="font-cormorant text-lg font-bold text-gold border-b border-champagne/10 pb-2">3. Venues & Locations</h2>
+            {venueFieldGroups.map((group) => (
+              <div key={group.title} className="space-y-6">
+                <h3 className="font-cormorant text-base font-bold text-elegant/80">{group.title}</h3>
+                {group.fields.map((field) => (
+                  <div key={field.name}>
+                    <label className="block text-xs uppercase tracking-wider font-inter text-muted font-semibold mb-2">{field.label}</label>
+                    {field.rows ? (
+                      <textarea name={field.name} value={form[field.name]} onChange={handleChange} required rows={field.rows} className={`${inputClass} resize-y`} />
+                    ) : (
+                      <input type="text" name={field.name} value={form[field.name]} onChange={handleChange} required className={inputClass} />
+                    )}
+                  </div>
+                ))}
               </div>
-              <div>
-                <label className="block text-xs uppercase tracking-wider font-inter text-muted font-semibold mb-2">Venue Address</label>
-                <textarea name="venueAddress" value={form.venueAddress} onChange={handleChange} required rows={2} className={`${inputClass} resize-y`} />
-              </div>
-              <div>
-                <label className="block text-xs uppercase tracking-wider font-inter text-muted font-semibold mb-2">Google Maps URL</label>
-                <input type="text" name="googleMapLink" value={form.googleMapLink} onChange={handleChange} required className={inputClass} />
-              </div>
-              <div>
-                <label className="block text-xs uppercase tracking-wider font-inter text-muted font-semibold mb-2">Google Maps Embed SRC</label>
-                <textarea name="googleMapEmbed" value={form.googleMapEmbed} onChange={handleChange} required rows={3} className={`${inputClass} resize-y`} />
-              </div>
-            </div>
+            ))}
           </div>
 
           <div className="bg-white border border-champagne/20 rounded-3xl p-6 sm:p-8 shadow-warm space-y-6">

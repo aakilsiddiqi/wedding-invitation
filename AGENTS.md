@@ -141,7 +141,7 @@ Favor timeless elegance over short-lived design trends.
 - `envelopeOpened` — controls overlay vs content visibility
 - `isPlayingMusic` — global audio state
 - `guestName` — from URL param
-- `datesRevealed` — persisted in `localStorage.luxury_wedding_dates_revealed`
+- `datesRevealed` — memory only (no storage), so every reload starts with the scratch card covered
 
 ## API Layer
 

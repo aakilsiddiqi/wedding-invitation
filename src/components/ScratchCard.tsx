@@ -5,16 +5,20 @@ import { motion, AnimatePresence } from "framer-motion";
 import Confetti from "react-confetti";
 import { Sparkles } from "lucide-react";
 import { easeOutExpo, fadeInUp, staggerContainer } from "@/src/utils/constants";
-import { WeddingData } from "../utils/weddingStore";
+import { WeddingData, getEventVenue } from "../utils/weddingStore";
 
 interface ScratchCardProps {
   data: WeddingData;
+  revealed?: boolean;
   onReveal?: () => void;
 }
 
-export default function ScratchCard({ data, onReveal }: ScratchCardProps) {
+export default function ScratchCard({ data, revealed = false, onReveal }: ScratchCardProps) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const [isScratchedFully, setIsScratchedFully] = useState(false);
+  // single source of truth stays in page.tsx, so a restored session never shows a
+  // covered card above already-revealed sections
+  const isRevealed = isScratchedFully || revealed;
   const [showConfetti, setShowConfetti] = useState(false);
   const [windowDimensions, setWindowDimensions] = useState({ width: 0, height: 0 });
   const [isDrawing, setIsDrawing] = useState(false);
@@ -241,23 +245,25 @@ export default function ScratchCard({ data, onReveal }: ScratchCardProps) {
                   <span className="font-cormorant font-bold text-sm tracking-widest text-gold uppercase">Nikah</span>
                   <p className="font-cormorant text-base font-bold text-elegant mt-1 leading-tight">{data.nikahDate}</p>
                   <p className="text-[11px] font-inter text-elegant/70 mt-1">{data.nikahTime}</p>
+                  <p className="text-[10px] font-inter uppercase tracking-[0.1em] text-elegant/50 mt-1 leading-tight line-clamp-2">{getEventVenue(data, "nikah").name}</p>
                 </div>
                 <div className="pl-2">
                   <span className="font-cormorant font-bold text-sm tracking-widest text-gold uppercase">Walima</span>
                   <p className="font-cormorant text-base font-bold text-elegant mt-1 leading-tight">{data.walimaDate}</p>
                   <p className="text-[11px] font-inter text-elegant/70 mt-1">{data.walimaTime}</p>
+                  <p className="text-[10px] font-inter uppercase tracking-[0.1em] text-elegant/50 mt-1 leading-tight line-clamp-2">{getEventVenue(data, "walima").name}</p>
                 </div>
               </div>
 
-              <div className="h-px w-24 bg-champagne/20 my-4" />
+              <div className="h-px w-24 bg-champagne/20 my-3" />
               <p className="font-inter text-[11px] uppercase tracking-[0.2em] text-elegant/60">
-                {data.venueName}
+                In Sha Allah
               </p>
             </div>
           </div>
 
           <AnimatePresence>
-            {!isScratchedFully && (
+            {!isRevealed && (
               <motion.canvas
                 ref={canvasRef}
                 className="absolute inset-0 w-full h-full cursor-crosshair z-20 touch-none"
@@ -276,7 +282,7 @@ export default function ScratchCard({ data, onReveal }: ScratchCardProps) {
         </div>
 
         <AnimatePresence>
-          {!isScratchedFully && (
+          {!isRevealed && (
             <motion.button
               onClick={handleKeyboardReveal}
               onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleKeyboardReveal(); } }}
@@ -293,7 +299,7 @@ export default function ScratchCard({ data, onReveal }: ScratchCardProps) {
         </AnimatePresence>
 
         <AnimatePresence>
-          {isScratchedFully && (
+          {isRevealed && (
             <motion.p
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}

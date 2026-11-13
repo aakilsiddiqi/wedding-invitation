@@ -3,7 +3,7 @@
 import { motion } from "framer-motion";
 import { Calendar, Clock, MapPin } from "lucide-react";
 import { easeOutExpo, itemFadeInUp, staggerContainer } from "@/src/utils/constants";
-import { WeddingData } from "../utils/weddingStore";
+import { WeddingData, getEventVenue } from "../utils/weddingStore";
 import SectionWrapper from "./SectionWrapper";
 import SectionTitle from "./SectionTitle";
 
@@ -19,7 +19,7 @@ export default function EventDetails({ data }: EventDetailsProps) {
       description: "The Islamic Marriage Contract Ceremony",
       date: data.nikahDate,
       time: data.nikahTime,
-      venue: data.venueName,
+      venue: getEventVenue(data, "nikah").name,
     },
     {
       title: "The Walima",
@@ -27,7 +27,7 @@ export default function EventDetails({ data }: EventDetailsProps) {
       description: "The Wedding Reception & Banquet",
       date: data.walimaDate,
       time: data.walimaTime,
-      venue: data.venueName,
+      venue: getEventVenue(data, "walima").name,
     },
   ];
 

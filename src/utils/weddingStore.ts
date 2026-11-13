@@ -14,6 +14,14 @@ export interface WeddingData {
   venueAddress: string;
   googleMapLink: string;
   googleMapEmbed: string;
+  nikahVenueName: string;
+  nikahVenueAddress: string;
+  nikahMapLink: string;
+  nikahMapEmbed: string;
+  walimaVenueName: string;
+  walimaVenueAddress: string;
+  walimaMapLink: string;
+  walimaMapEmbed: string;
   countdownDate: string;
   brideFamily: string;
   groomFamily: string;
@@ -27,12 +35,47 @@ export interface WeddingData {
 
 const STORAGE_KEY = "luxury_wedding_invitation_data";
 
+export interface VenueInfo {
+  name: string;
+  address: string;
+  mapLink: string;
+  mapEmbed: string;
+}
+
+/**
+ * Per-event venue, falling back to the legacy single-venue fields so data saved
+ * before the two-venue split still renders.
+ */
+export function getEventVenue(data: WeddingData, event: "nikah" | "walima"): VenueInfo {
+  const isNikah = event === "nikah";
+  return {
+    name: (isNikah ? data.nikahVenueName : data.walimaVenueName) || data.venueName,
+    address: (isNikah ? data.nikahVenueAddress : data.walimaVenueAddress) || data.venueAddress,
+    mapLink: (isNikah ? data.nikahMapLink : data.walimaMapLink) || data.googleMapLink,
+    mapEmbed: (isNikah ? data.nikahMapEmbed : data.walimaMapEmbed) || data.googleMapEmbed,
+  };
+}
+
 export function getInitialData(): WeddingData {
   if (typeof window !== "undefined") {
     try {
       const stored = localStorage.getItem(STORAGE_KEY);
       if (stored) {
-        return JSON.parse(stored);
+        // merge over defaults so data saved before a field existed still fills every key
+        const parsed = JSON.parse(stored) as Partial<WeddingData>;
+        const merged = { ...(defaultData as WeddingData), ...parsed };
+        // data saved before the two-venue split keeps its single venue for both events
+        if (!parsed.nikahVenueName) {
+          merged.nikahVenueName = merged.venueName;
+          merged.nikahVenueAddress = merged.venueAddress;
+          merged.nikahMapLink = merged.googleMapLink;
+          merged.nikahMapEmbed = merged.googleMapEmbed;
+          merged.walimaVenueName = merged.venueName;
+          merged.walimaVenueAddress = merged.venueAddress;
+          merged.walimaMapLink = merged.googleMapLink;
+          merged.walimaMapEmbed = merged.googleMapEmbed;
+        }
+        return merged;
       }
     } catch (e) {
       console.error("Error reading localStorage:", e);
