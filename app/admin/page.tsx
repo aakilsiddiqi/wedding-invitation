@@ -47,7 +47,7 @@ export default function AdminPage() {
     );
   }
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setForm((prev) => (prev ? { ...prev, [name]: value } : null));
   };
@@ -144,6 +144,16 @@ export default function AdminPage() {
               <div>
                 <label className="block text-xs uppercase tracking-wider font-inter text-muted font-semibold mb-2">Groom Name</label>
                 <input type="text" name="groomName" value={form.groomName} onChange={handleChange} required className={inputClass} />
+              </div>
+              <div className="md:col-span-2">
+                <label className="block text-xs uppercase tracking-wider font-inter text-muted font-semibold mb-2">Inviting Side (Name Order)</label>
+                <select name="inviteSide" value={form.inviteSide || "bride"} onChange={handleChange} className={inputClass}>
+                  <option value="groom">Groom&apos;s side first</option>
+                  <option value="bride">Bride&apos;s side first</option>
+                </select>
+                <span className="text-[10px] text-muted/40 font-inter mt-1 block">
+                  Whichever side is inviting reads first on the envelope, letter, couple section, footer and WhatsApp message.
+                </span>
               </div>
             </div>
           </div>

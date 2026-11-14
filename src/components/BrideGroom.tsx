@@ -2,7 +2,7 @@
 
 import { motion } from "framer-motion";
 import { easeOutExpo, fadeInLeft, fadeInRight } from "@/src/utils/constants";
-import { WeddingData } from "../utils/weddingStore";
+import { WeddingData, getCoupleOrder } from "../utils/weddingStore";
 import SectionWrapper from "./SectionWrapper";
 import SectionTitle from "./SectionTitle";
 
@@ -11,14 +11,15 @@ interface BrideGroomProps {
 }
 
 export default function BrideGroom({ data }: BrideGroomProps) {
+  const couple = getCoupleOrder(data);
   return (
     <SectionWrapper id="bride-groom" dark decorative>
-      <SectionTitle label="Introducing The Couple" title="The Bride & The Groom" dark />
+      <SectionTitle label="Introducing The Couple" title={couple.heading} dark />
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-12 sm:gap-20 items-center justify-center max-w-4xl mx-auto">
         <motion.div
-          variants={fadeInLeft}
-          className="flex flex-col items-center"
+          variants={couple.groomFirst ? fadeInRight : fadeInLeft}
+          className={`flex flex-col items-center ${couple.groomFirst ? "order-2" : "order-1"}`}
         >
           <motion.div
             animate={{ y: [0, -12, 0] }}
@@ -63,8 +64,8 @@ export default function BrideGroom({ data }: BrideGroomProps) {
         </motion.div>
 
         <motion.div
-          variants={fadeInRight}
-          className="flex flex-col items-center"
+          variants={couple.groomFirst ? fadeInLeft : fadeInRight}
+          className={`flex flex-col items-center ${couple.groomFirst ? "order-1" : "order-2"}`}
         >
           <motion.div
             animate={{ y: [0, -12, 0] }}

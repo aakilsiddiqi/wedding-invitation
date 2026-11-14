@@ -3,7 +3,7 @@
 import { motion } from "framer-motion";
 import { Phone, ArrowUp } from "lucide-react";
 import { fadeInUp, fadeInScale } from "@/src/utils/constants";
-import { WeddingData } from "../utils/weddingStore";
+import { WeddingData, getCoupleOrder } from "../utils/weddingStore";
 import DecorativeDivider from "./DecorativeDivider";
 
 interface FooterProps {
@@ -12,6 +12,7 @@ interface FooterProps {
 
 export default function Footer({ data }: FooterProps) {
   const year = new Date().getFullYear();
+  const couple = getCoupleOrder(data);
 
   const scrollToTop = () => {
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -50,33 +51,21 @@ export default function Footer({ data }: FooterProps) {
           </h3>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 text-center max-w-2xl mx-auto">
-            <div className="p-6 rounded-2xl border border-champagne/10 bg-elegant-light/30 backdrop-blur-sm shadow-card">
-              <span className="text-[10px] tracking-widest text-champagne uppercase font-cormorant">Bride&apos;s Family</span>
-              <h4 className="font-cormorant text-base sm:text-lg font-bold text-warm-white mt-2 mb-4 leading-tight">
-                {data.brideFamily}
-              </h4>
-              <a
-                href={`tel:${data.brideContact.replace(/\s+/g, "")}`}
-                className="inline-flex items-center gap-2 text-xs text-gold hover:text-warm-white transition-colors mt-2"
-              >
-                <Phone className="h-3.5 w-3.5" />
-                {data.brideContact}
-              </a>
-            </div>
-
-            <div className="p-6 rounded-2xl border border-champagne/10 bg-elegant-light/30 backdrop-blur-sm shadow-card">
-              <span className="text-[10px] tracking-widest text-champagne uppercase font-cormorant">Groom&apos;s Family</span>
-              <h4 className="font-cormorant text-base sm:text-lg font-bold text-warm-white mt-2 mb-4 leading-tight">
-                {data.groomFamily}
-              </h4>
-              <a
-                href={`tel:${data.groomContact.replace(/\s+/g, "")}`}
-                className="inline-flex items-center gap-2 text-xs text-gold hover:text-warm-white transition-colors mt-2"
-              >
-                <Phone className="h-3.5 w-3.5" />
-                {data.groomContact}
-              </a>
-            </div>
+            {couple.families.map((side) => (
+              <div key={side.label} className="p-6 rounded-2xl border border-champagne/10 bg-elegant-light/30 backdrop-blur-sm shadow-card">
+                <span className="text-[10px] tracking-widest text-champagne uppercase font-cormorant">{side.label}</span>
+                <h4 className="font-cormorant text-base sm:text-lg font-bold text-warm-white mt-2 mb-4 leading-tight">
+                  {side.family}
+                </h4>
+                <a
+                  href={`tel:${side.contact.replace(/\s+/g, "")}`}
+                  className="inline-flex items-center gap-2 text-xs text-gold hover:text-warm-white transition-colors mt-2"
+                >
+                  <Phone className="h-3.5 w-3.5" />
+                  {side.contact}
+                </a>
+              </div>
+            ))}
           </div>
         </motion.div>
 
@@ -93,7 +82,7 @@ export default function Footer({ data }: FooterProps) {
         </motion.div>
 
         <p className="text-[10px] font-inter tracking-widest text-champagne/40 uppercase mt-8">
-          &copy; {year} {data.brideName} &amp; {data.groomName} Wedding Invitation. All rights reserved.
+          &copy; {year} {couple.first} &amp; {couple.second} Wedding Invitation. All rights reserved.
         </p>
 
         <motion.button
