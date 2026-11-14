@@ -97,7 +97,7 @@ function InvitationContent() {
 
       {/* Envelope Overlay */}
       {!envelopeOpened && (
-        <Envelope onOpen={handleOpenEnvelope} guestName={guestName} />
+        <Envelope onOpen={handleOpenEnvelope} guestName={guestName} data={data} />
       )}
 
       {/* Full Page Invitation Content */}
