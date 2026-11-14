@@ -3,7 +3,7 @@
 import { motion } from "framer-motion";
 import { ChevronDown } from "lucide-react";
 import { easeOutExpo, itemFadeInUp, staggerContainer, scrollToSection } from "@/src/utils/constants";
-import { WeddingData } from "../utils/weddingStore";
+import { WeddingData, getCoupleOrder } from "../utils/weddingStore";
 import CornerOrnaments from "./CornerOrnaments";
 
 interface InvitationLetterProps {
@@ -12,6 +12,7 @@ interface InvitationLetterProps {
 }
 
 export default function InvitationLetter({ data, guestName }: InvitationLetterProps) {
+  const couple = getCoupleOrder(data);
   return (
     <section className="relative flex min-h-screen items-center justify-center py-24 px-4 overflow-hidden" id="invitation-letter">
       <div className="absolute inset-0 bg-ivory" />
@@ -115,7 +116,7 @@ export default function InvitationLetter({ data, guestName }: InvitationLetterPr
                 whileHover={{ scale: 1.03 }}
                 className="font-cormorant text-[clamp(1.75rem,4vw,2.5rem)] font-bold tracking-wide text-gold-gradient cursor-default"
               >
-                {data.brideName}
+                {couple.first}
               </motion.h4>
 
               <motion.div
@@ -131,7 +132,7 @@ export default function InvitationLetter({ data, guestName }: InvitationLetterPr
                 whileHover={{ scale: 1.03 }}
                 className="font-cormorant text-[clamp(1.75rem,4vw,2.5rem)] font-bold tracking-wide text-gold-gradient cursor-default"
               >
-                {data.groomName}
+                {couple.second}
               </motion.h4>
             </div>
 

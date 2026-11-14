@@ -16,10 +16,11 @@ DEFAULT_COUNTRY_CODE = "91"  # Prefixed to bare 10-digit numbers
 WEDDING_FILE = Path(__file__).resolve().parent.parent / "src" / "data" / "wedding.json"
 
 # Customized Invitation Message Templates, keyed by (Religion, InviteType)
+# {first} is the inviting side's name, so a groom-side invite leads with the groom
 MESSAGE_TEMPLATES = {
     ("Muslim", "With Family"): """Assalamu Alaikum {name},
 
-With the blessings of Allah SWT, we cordially invite you and your family to celebrate the wedding ceremony of {bride} and {groom}. 
+With the blessings of Allah SWT, we cordially invite you and your family to celebrate the wedding ceremony of {first} and {second}. 
 
 We would be honored to have your presence and prayers on this special day. 
 
@@ -31,7 +32,7 @@ Barakallahu Feekum,
 """,
     ("Muslim", "Normal"): """Assalamu Alaikum {name},
 
-With the blessings of Allah SWT, we cordially invite you to celebrate the wedding ceremony of {bride} and {groom}. 
+With the blessings of Allah SWT, we cordially invite you to celebrate the wedding ceremony of {first} and {second}. 
 
 We would be honored to have your presence and prayers on this special day. 
 
@@ -43,7 +44,7 @@ Barakallahu Feekum,
 """,
     ("Hindu", "With Family"): """Namaste {name},
 
-It is with great joy that we invite you and your family to celebrate the wedding ceremony of {bride} and {groom}. 
+It is with great joy that we invite you and your family to celebrate the wedding ceremony of {first} and {second}. 
 
 We would be honored to have your presence and blessings on this special day. 
 
@@ -55,7 +56,7 @@ Warm regards,
 """,
     ("Hindu", "Normal"): """Namaste {name},
 
-It is with great joy that we invite you to celebrate the wedding ceremony of {bride} and {groom}. 
+It is with great joy that we invite you to celebrate the wedding ceremony of {first} and {second}. 
 
 We would be honored to have your presence and blessings on this special day. 
 
@@ -86,14 +87,18 @@ def load_names(path):
     if missing:
         raise ValueError(f"Wedding config is missing {', '.join(missing)}: {path}")
 
-    # hosts is the signature block; families are optional, so skip whichever is blank
-    hosts = "\n".join(
-        value.strip() for value in (wedding.get("brideFamily"), wedding.get("groomFamily")) if (value or "").strip()
-    )
+    bride, groom = wedding["brideName"].strip(), wedding["groomName"].strip()
+    bride_family = (wedding.get("brideFamily") or "").strip()
+    groom_family = (wedding.get("groomFamily") or "").strip()
+    # same rule as the site: the inviting side reads first, missing key keeps bride-first
+    groom_first = (wedding.get("inviteSide") or "bride").strip().lower() == "groom"
+
     return {
-        "bride": wedding["brideName"].strip(),
-        "groom": wedding["groomName"].strip(),
-        "hosts": hosts,
+        "first": groom if groom_first else bride,
+        "second": bride if groom_first else groom,
+        # signature block is the inviting family first, blanks skipped
+        "hosts": "\n".join(f for f in ((groom_family, bride_family) if groom_first else (bride_family, groom_family)) if f),
+        "side": "groom's side" if groom_first else "bride's side",
     }
 
 
@@ -259,7 +264,7 @@ def main():
         print(f"Error: {error}")
         return
 
-    print(f"Couple (from {WEDDING_FILE.name}): {names['bride']} & {names['groom']}")
+    print(f"Couple (from {WEDDING_FILE.name}): {names['first']} & {names['second']}  [{names['side']} first]")
     print(f"Hosts:  {names['hosts'].replace(chr(10), ' / ') or '(none in wedding.json)'}\n")
 
     for problem in problems:

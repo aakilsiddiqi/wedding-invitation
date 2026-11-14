@@ -6,6 +6,8 @@ import defaultData from "@/src/data/wedding.json";
 export interface WeddingData {
   brideName: string;
   groomName: string;
+  /** "groom" or "bride": which side is inviting, decides whose name reads first */
+  inviteSide: string;
   nikahDate: string;
   walimaDate: string;
   nikahTime: string;
@@ -53,6 +55,33 @@ export function getEventVenue(data: WeddingData, event: "nikah" | "walima"): Ven
     address: (isNikah ? data.nikahVenueAddress : data.walimaVenueAddress) || data.venueAddress,
     mapLink: (isNikah ? data.nikahMapLink : data.walimaMapLink) || data.googleMapLink,
     mapEmbed: (isNikah ? data.nikahMapEmbed : data.walimaMapEmbed) || data.googleMapEmbed,
+  };
+}
+
+export interface CoupleOrder {
+  groomFirst: boolean;
+  first: string;
+  second: string;
+  heading: string;
+  families: { label: string; family: string; contact: string }[];
+}
+
+/**
+ * Whichever side is inviting reads first, so groom-side invites lead with the groom.
+ * A missing key keeps the historical bride-first order.
+ */
+export function getCoupleOrder(data: WeddingData): CoupleOrder {
+  const groomFirst = data.inviteSide === "groom";
+  const families = [
+    { label: "Groom's Family", family: data.groomFamily, contact: data.groomContact },
+    { label: "Bride's Family", family: data.brideFamily, contact: data.brideContact },
+  ];
+  return {
+    groomFirst,
+    first: groomFirst ? data.groomName : data.brideName,
+    second: groomFirst ? data.brideName : data.groomName,
+    heading: groomFirst ? "The Groom & The Bride" : "The Bride & The Groom",
+    families: groomFirst ? families : [...families].reverse(),
   };
 }
 
