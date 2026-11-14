@@ -1,20 +1,25 @@
 import csv
 import html
+import json
 import os
+import sys
 import urllib.parse
 import webbrowser
 from pathlib import Path
 
 # Configuration
-BASE_URL = "https://wedding-invitation-nine-virid.vercel.app/"  # Replace with your deployed Vercel domain
+BASE_URL = "https://wedding-invitation-groom-bride.vercel.app/"  # Replace with your deployed Vercel domain
 CSV_FILE = "guests.csv"
 OUTPUT_FILE = "invites.html"
 DEFAULT_COUNTRY_CODE = "91"  # Prefixed to bare 10-digit numbers
+# Couple and family names come from the site's own config so both stay in sync
+WEDDING_FILE = Path(__file__).resolve().parent.parent / "src" / "data" / "wedding.json"
 
-# Customized Invitation Message Template
-MESSAGE_TEMPLATE = """Assalamu Alaikum {name},
+# Customized Invitation Message Templates, keyed by (Religion, InviteType)
+MESSAGE_TEMPLATES = {
+    ("Muslim", "With Family"): """Assalamu Alaikum {name},
 
-With the blessings of Allah SWT, we cordially invite you and your family to celebrate the wedding ceremony of Ayesha and Zayd. 
+With the blessings of Allah SWT, we cordially invite you and your family to celebrate the wedding ceremony of {bride} and {groom}. 
 
 We would be honored to have your presence and prayers on this special day. 
 
@@ -22,8 +27,74 @@ Please click the link below to open your personalized interactive royal invitati
 {url}
 
 Barakallahu Feekum,
-Fazlur Rahman & Shakeel Ahmed Siddiqua
-"""
+{hosts}
+""",
+    ("Muslim", "Normal"): """Assalamu Alaikum {name},
+
+With the blessings of Allah SWT, we cordially invite you to celebrate the wedding ceremony of {bride} and {groom}. 
+
+We would be honored to have your presence and prayers on this special day. 
+
+Please click the link below to open your personalized interactive royal invitation card:
+{url}
+
+Barakallahu Feekum,
+{hosts}
+""",
+    ("Hindu", "With Family"): """Namaste {name},
+
+It is with great joy that we invite you and your family to celebrate the wedding ceremony of {bride} and {groom}. 
+
+We would be honored to have your presence and blessings on this special day. 
+
+Please click the link below to open your personalized interactive royal invitation card:
+{url}
+
+Warm regards,
+{hosts}
+""",
+    ("Hindu", "Normal"): """Namaste {name},
+
+It is with great joy that we invite you to celebrate the wedding ceremony of {bride} and {groom}. 
+
+We would be honored to have your presence and blessings on this special day. 
+
+Please click the link below to open your personalized interactive royal invitation card:
+{url}
+
+Warm regards,
+{hosts}
+""",
+}
+
+# Accepted CSV spellings, normalized to the keys used above
+RELIGIONS = {"muslim": "Muslim", "islam": "Muslim", "hindu": "Hindu"}
+INVITE_TYPES = {"with family": "With Family", "family": "With Family", "normal": "Normal", "single": "Normal"}
+
+
+def load_names(path):
+    """Read couple + host names from the site config so messages follow wedding.json."""
+    try:
+        with open(path, mode="r", encoding="utf-8") as file:
+            wedding = json.load(file)
+    except FileNotFoundError:
+        raise ValueError(f"Wedding config not found: {path}")
+    except json.JSONDecodeError as error:
+        raise ValueError(f"Wedding config is not valid JSON ({path}): {error}")
+
+    missing = [k for k in ("brideName", "groomName") if not (wedding.get(k) or "").strip()]
+    if missing:
+        raise ValueError(f"Wedding config is missing {', '.join(missing)}: {path}")
+
+    # hosts is the signature block; families are optional, so skip whichever is blank
+    hosts = "\n".join(
+        value.strip() for value in (wedding.get("brideFamily"), wedding.get("groomFamily")) if (value or "").strip()
+    )
+    return {
+        "bride": wedding["brideName"].strip(),
+        "groom": wedding["groomName"].strip(),
+        "hosts": hosts,
+    }
 
 
 def normalize_phone(raw):
@@ -34,15 +105,17 @@ def normalize_phone(raw):
     return digits
 
 
-def load_guests(csv_path):
-    """Return (guests, problems). Guests are dicts with name, phone, whatsapp_url."""
+def load_guests(csv_path, names):
+    """Return (guests, problems). Guests are dicts with name, phone, religion, invite_type, whatsapp_url."""
     guests, problems = [], []
 
     with open(csv_path, mode="r", encoding="utf-8-sig", newline="") as file:
         reader = csv.DictReader(file)
         fields = [f.strip() for f in (reader.fieldnames or [])]
-        if "Name" not in fields or "Phone" not in fields:
-            raise ValueError("CSV must contain 'Name' and 'Phone' columns.")
+        required = ["Name", "Phone", "Religion", "InviteType"]
+        missing = [f for f in required if f not in fields]
+        if missing:
+            raise ValueError(f"CSV must contain these columns: {', '.join(required)} (missing: {', '.join(missing)}).")
 
         for line, row in enumerate(reader, start=2):
             name = (row.get("Name") or "").strip()
@@ -58,14 +131,30 @@ def load_guests(csv_path):
                 problems.append(f"line {line}: '{name}' has unusable phone {phone!r}")
                 continue
 
-            message = MESSAGE_TEMPLATE.format(
+            raw_religion = (row.get("Religion") or "").strip()
+            raw_type = (row.get("InviteType") or "").strip()
+            religion = RELIGIONS.get(raw_religion.lower())
+            invite_type = INVITE_TYPES.get(raw_type.lower())
+            if not religion:
+                problems.append(f"line {line}: '{name}' has unknown Religion {raw_religion!r} (use Muslim or Hindu)")
+                continue
+            if not invite_type:
+                problems.append(f"line {line}: '{name}' has unknown InviteType {raw_type!r} (use 'With Family' or Normal)")
+                continue
+
+            message = MESSAGE_TEMPLATES[(religion, invite_type)].format(
                 name=name,
                 url=f"{BASE_URL}?guest={urllib.parse.quote(name)}",
+                **names,
             )
             guests.append(
                 {
                     "name": name,
                     "phone": phone_cleaned,
+                    "key": f"{name}|{phone_cleaned}",
+                    "religion": religion,
+                    "invite_type": invite_type,
+                    "message": message,
                     "whatsapp_url": "https://web.whatsapp.com/send"
                     f"?phone={phone_cleaned}&text={urllib.parse.quote(message)}",
                 }
@@ -76,9 +165,10 @@ def load_guests(csv_path):
 
 def build_html(guests):
     rows = "\n".join(
-        f'      <li><a class="guest" data-phone="{g["phone"]}" '
+        f'      <li><a class="guest" data-key="{html.escape(g["key"], quote=True)}" '
         f'href="{html.escape(g["whatsapp_url"], quote=True)}">'
-        f"{html.escape(g['name'])}</a> <small>{g['phone']}</small></li>"
+        f"{html.escape(g['name'])}</a> <small>{g['phone']}</small> "
+        f'<small class="tag">{html.escape(g["religion"])} &middot; {html.escape(g["invite_type"])}</small></li>'
         for g in guests
     )
     return f"""<!doctype html>
@@ -95,6 +185,7 @@ def build_html(guests):
   a.guest {{ color: #8a6d3b; }}
   a.sent {{ color: #9c9c9c; text-decoration: line-through; }}
   small {{ color: #8c8c8c; }}
+  small.tag {{ border: 1px solid #e0d5c0; border-radius: 999px; padding: .05rem .5rem; color: #8a6d3b; }}
 </style>
 </head>
 <body>
@@ -112,10 +203,12 @@ Press <strong>Send</strong> in WhatsApp, then your browser's <strong>Back</stron
 <script>
 const KEY = "wedding-invites-sent";
 const links = Array.from(document.querySelectorAll("a.guest"));
-let sent = new Set(JSON.parse(localStorage.getItem(KEY) || "[]"));
+const keys = new Set(links.map(a => a.dataset.key));
+// drop marks from older runs so removed or renamed guests never pad the count
+let sent = new Set(JSON.parse(localStorage.getItem(KEY) || "[]").filter(k => keys.has(k)));
 
 function refresh() {{
-  links.forEach(a => a.classList.toggle("sent", sent.has(a.dataset.phone)));
+  links.forEach(a => a.classList.toggle("sent", sent.has(a.dataset.key)));
   document.getElementById("status").textContent = sent.size + " / " + links.length + " sent";
   localStorage.setItem(KEY, JSON.stringify(Array.from(sent)));
 }}
@@ -123,7 +216,7 @@ function refresh() {{
 // Same-tab navigation: WhatsApp Web sends COOP: same-origin, which severs the
 // browsing context group and makes named targets / window handles unusable.
 function open(a) {{
-  sent.add(a.dataset.phone);
+  sent.add(a.dataset.key);
   refresh();
   location.href = a.href;
 }}
@@ -131,7 +224,7 @@ function open(a) {{
 links.forEach(a => a.addEventListener("click", e => {{ e.preventDefault(); open(a); }}));
 
 document.getElementById("next").addEventListener("click", () => {{
-  const next = links.find(a => !sent.has(a.dataset.phone));
+  const next = links.find(a => !sent.has(a.dataset.key));
   if (next) open(next); else alert("All guests marked as sent.");
 }});
 
@@ -160,16 +253,28 @@ def main():
     print(f"Base URL:   {BASE_URL}\n")
 
     try:
-        guests, problems = load_guests(CSV_FILE)
+        names = load_names(WEDDING_FILE)
+        guests, problems = load_guests(CSV_FILE, names)
     except ValueError as error:
         print(f"Error: {error}")
         return
+
+    print(f"Couple (from {WEDDING_FILE.name}): {names['bride']} & {names['groom']}")
+    print(f"Hosts:  {names['hosts'].replace(chr(10), ' / ') or '(none in wedding.json)'}\n")
 
     for problem in problems:
         print(f"  skipped - {problem}")
 
     if not guests:
         print("No valid guests found. Nothing to do.")
+        return
+
+    if "--dry-run" in sys.argv:
+        print(f"\nDry run - {len(guests)} guest(s), nothing written.\n")
+        for guest in guests:
+            print(f"  {guest['name']} | {guest['phone']} | {guest['religion']} | {guest['invite_type']}")
+        print("\n--- Sample message (%s / %s) ---\n" % (guests[0]["religion"], guests[0]["invite_type"]))
+        print(guests[0]["message"])
         return
 
     output = Path(OUTPUT_FILE).resolve()

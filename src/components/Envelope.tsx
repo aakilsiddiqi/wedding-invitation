@@ -2,15 +2,17 @@
 
 import { useEffect, useRef, useState, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ChevronDown } from "lucide-react";
+import { ChevronUp } from "lucide-react";
 import { easeOutExpo } from "@/src/utils/constants";
+import { WeddingData } from "../utils/weddingStore";
 
 interface EnvelopeProps {
   onOpen: () => void;
   guestName: string;
+  data: WeddingData;
 }
 
-export default function Envelope({ onOpen, guestName }: EnvelopeProps) {
+export default function Envelope({ onOpen, guestName, data }: EnvelopeProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [isOpenedFully, setIsOpenedFully] = useState(false);
   const [bringCardToFront, setBringCardToFront] = useState(false);
@@ -234,7 +236,7 @@ export default function Envelope({ onOpen, guestName }: EnvelopeProps) {
                   <span className="text-[10px] tracking-[0.3em] uppercase text-gold font-inter">Wedding Invitation</span>
                   <div className="my-2">
                     <p className="font-cormorant text-sm italic text-elegant/80">Save the Date for</p>
-                    <p className="font-cormorant text-xl sm:text-2xl font-bold tracking-wide text-gold-gradient mt-1">Ayesha & Zayd</p>
+                    <p className="font-cormorant text-xl sm:text-2xl font-bold tracking-wide text-gold-gradient mt-1">{data.brideName} &amp; {data.groomName}</p>
                   </div>
                   <div className="h-px w-12 bg-champagne/30" />
                   <p className="text-[11px] font-inter tracking-widest text-elegant/60 uppercase">Honor of Your Presence Is Requested</p>
@@ -367,6 +369,30 @@ export default function Envelope({ onOpen, guestName }: EnvelopeProps) {
               </AnimatePresence>
             </div>
 
+            {/* Prompt sits directly under the envelope and points up at the seal, so the action is unmissable */}
+            <AnimatePresence>
+              {!isOpen && (
+                <motion.div
+                  aria-hidden="true"
+                  className="pointer-events-none flex flex-col items-center gap-2 -mt-4 mb-10"
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, transition: { duration: 0.25 } }}
+                  transition={{ delay: 1.6, duration: 0.9, ease: easeOutExpo }}
+                >
+                  <motion.span
+                    animate={{ y: [0, -5, 0], opacity: [0.65, 1, 0.65] }}
+                    transition={{ duration: 1.8, repeat: Infinity, ease: "easeInOut" }}
+                  >
+                    <ChevronUp className="h-5 w-5 text-gold" />
+                  </motion.span>
+                  <span className="rounded-full border border-gold/40 bg-gold/5 px-4 py-1.5 font-inter text-[10px] sm:text-xs uppercase tracking-[0.3em] text-gold">
+                    Tap the Seal
+                  </span>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -379,15 +405,6 @@ export default function Envelope({ onOpen, guestName }: EnvelopeProps) {
               <h2 className="font-cormorant text-xl sm:text-2xl font-semibold text-gold mt-1 mb-8">
                 {guestName}
               </h2>
-
-              <motion.div
-                animate={{ y: [0, 8, 0] }}
-                transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
-                className="flex flex-col items-center gap-1 opacity-50"
-              >
-                <span className="text-[10px] sm:text-xs uppercase tracking-[0.2em] font-inter">Click seal to open</span>
-                <ChevronDown className="h-4 w-4 text-gold" />
-              </motion.div>
             </motion.div>
           </motion.div>
         )}

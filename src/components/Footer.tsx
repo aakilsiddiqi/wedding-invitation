@@ -93,7 +93,7 @@ export default function Footer({ data }: FooterProps) {
         </motion.div>
 
         <p className="text-[10px] font-inter tracking-widest text-champagne/40 uppercase mt-8">
-          &copy; {year} Ayesha &amp; Zayd Wedding Invitation. All rights reserved.
+          &copy; {year} {data.brideName} &amp; {data.groomName} Wedding Invitation. All rights reserved.
         </p>
 
         <motion.button
